@@ -39,9 +39,9 @@ export const Route = createFileRoute("/product/$id")({
 function ProductPage() {
   const { product } = Route.useLoaderData();
   const recommended = PRODUCTS.filter((p) => p.id !== product.id).slice(0, 4);
-  const fieldLabels = product.fields
-    .map((f) => FIELDS.find((x) => x.value === f)?.label)
-    .filter(Boolean);
+  const fieldLabels: string[] = product.fields
+    .map((f: string) => FIELDS.find((x) => x.value === f)?.label)
+    .filter((l): l is string => Boolean(l));
 
   return (
     <Layout>
