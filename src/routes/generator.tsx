@@ -110,16 +110,23 @@ function GeneratorPage() {
                       </Grid>
                     )}
                     {step === 1 && (
-                      <Grid>
-                        {LEVELS.map((f) => (
-                          <OptionCard
-                            key={f.value}
-                            label={f.label}
-                            selected={profile.level === f.value}
-                            onClick={() => select("level", f.value)}
-                          />
-                        ))}
-                      </Grid>
+                      <div className="space-y-3">
+                        <div>
+                          <h2 className="text-2xl font-bold tracking-tight">What's your level?</h2>
+                          <p className="mt-1 text-sm text-muted-foreground">Choose your current academic level</p>
+                        </div>
+                        <div className="flex flex-col gap-3 pt-2">
+                          {LEVELS.map((f) => (
+                            <OptionCard
+                              key={f.value}
+                              label={f.label}
+                              desc={f.desc}
+                              selected={profile.level === f.value}
+                              onClick={() => select("level", f.value)}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     )}
                     {step === 2 && (
                       <Grid>
