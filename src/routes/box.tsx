@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useEffect, useMemo } from "react";
-import { ArrowRight, Check, Save, Share2, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Save, Share2, Sparkles, ShoppingBag } from "lucide-react";
 import { Layout } from "@/components/site/Layout";
 import { Reveal } from "@/components/site/Reveal";
 import { Button } from "@/components/ui/button";
 import { FIELDS, generateBox, saveBox, type Profile } from "@/lib/products";
+import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 
 type SearchParams = Partial<Profile>;
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/box")({
     level: typeof search.level === "string" ? search.level : undefined,
     goal: typeof search.goal === "string" ? search.goal : undefined,
     style: typeof search.style === "string" ? search.style : undefined,
+    budget: typeof search.budget === "string" ? parseInt(search.budget) : undefined,
   }),
   head: () => ({
     meta: [
@@ -28,15 +30,17 @@ export const Route = createFileRoute("/box")({
 
 function BoxPage() {
   const search = useSearch({ from: "/box" });
+  const cart = useCart();
 
   const profile: Profile = {
     field: search.field ?? "computer-science",
-    level: search.level ?? "L3",
+    level: search.level ?? "undergraduate",
     goal: search.goal ?? "exams",
     style: search.style ?? "organized",
+    budget: search.budget ?? 150,
   };
 
-  const { products, rationale } = useMemo(() => generateBox(profile), [profile.field, profile.level, profile.goal, profile.style]);
+  const { products, rationale } = useMemo(() => generateBox(profile), [profile.field, profile.level, profile.goal, profile.style, profile.budget]);
 
   const total = products.reduce((acc, p) => acc + p.price, 0);
   const fieldLabel = FIELDS.find((f) => f.value === profile.field)?.label ?? profile.field;
@@ -65,6 +69,11 @@ function BoxPage() {
     }
   };
 
+  const handleAddAll = () => {
+    products.forEach((p) => cart.addItem(p));
+    toast.success(`Added ${products.length} items to cart!`);
+  };
+
   return (
     <Layout>
       <section className="px-6">
@@ -82,7 +91,8 @@ function BoxPage() {
               Your <span className="gradient-text">StudyBox</span> is ready.
             </h1>
             <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-              Curated for {fieldLabel} · {profile.level} · {profile.goal} · {profile.style}.
+              Curated for {fieldLabel} · {profile.level} · {profile.goal} · {profile.style}
+              {profile.budget && ` · $${profile.budget} budget`}.
             </p>
           </motion.div>
 
@@ -105,8 +115,13 @@ function BoxPage() {
                 <Button variant="secondary" onClick={handleSave}>
                   <Save className="mr-1 h-4 w-4" /> Save box
                 </Button>
-                <Button className="shadow-soft-md hover:-translate-y-0.5 transition-transform">
-                  Add all to cart <ArrowRight className="ml-1 h-4 w-4" />
+                <Button onClick={handleAddAll} className="shadow-soft-md hover:-translate-y-0.5 transition-transform">
+                  <ShoppingBag className="mr-1 h-4 w-4" /> Add all to cart
+                </Button>
+                <Button asChild className="shadow-soft-md hover:-translate-y-0.5 transition-transform">
+                  <Link to="/cart">
+                    View cart <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
                 </Button>
               </div>
             </div>

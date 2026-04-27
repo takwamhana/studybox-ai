@@ -1,0 +1,150 @@
+// API Testing Examples
+// Copy and paste into your API testing tool (Postman, REST Client, etc.)
+
+// ============================================
+// HEALTH CHECK
+// ============================================
+
+GET http://localhost:5000/api/health
+
+// Expected Response:
+// {
+//   "status": "ok",
+//   "timestamp": "2024-04-27...",
+//   "uptime": 123.45
+// }
+
+
+// ============================================
+// AI STUDY PACK GENERATION
+// ============================================
+
+POST http://localhost:5000/api/packs/generate
+Content-Type: application/json
+
+{
+  "field": "Computer Science",
+  "level": "L2",
+  "goal": "exam",
+  "studyStyle": "organized",
+  "budget": 150
+}
+
+// Expected Response:
+// {
+//   "success": true,
+//   "data": {
+//     "id": "507f1f77bcf86cd799439011",
+//     "packName": "...",
+//     "description": "...",
+//     "totalEstimatedCost": 149.99,
+//     "items": [...]
+//   }
+// }
+
+
+// ============================================
+// GET STUDY PACK BY ID
+// ============================================
+
+GET http://localhost:5000/api/packs/507f1f77bcf86cd799439011
+
+
+// ============================================
+// LIST ALL STUDY PACKS
+// ============================================
+
+GET http://localhost:5000/api/packs
+
+
+// ============================================
+// GET ALL PRODUCTS
+// ============================================
+
+GET http://localhost:5000/api/products
+
+
+// ============================================
+// GET ALL PRODUCTS WITH FILTERS
+// ============================================
+
+GET http://localhost:5000/api/products?category=books&minPrice=20&maxPrice=60
+
+
+// ============================================
+// GET SINGLE PRODUCT
+// ============================================
+
+GET http://localhost:5000/api/products/507f1f77bcf86cd799439011
+
+
+// ============================================
+// CREATE PRODUCT (ADMIN)
+// ============================================
+
+POST http://localhost:5000/api/products
+Content-Type: application/json
+
+{
+  "name": "Advanced Python Programming",
+  "price": 59.99,
+  "category": "books",
+  "image": "https://example.com/image.jpg",
+  "description": "Learn advanced Python concepts and patterns",
+  "inStock": true
+}
+
+
+// ============================================
+// UPDATE PRODUCT (ADMIN)
+// ============================================
+
+PATCH http://localhost:5000/api/products/507f1f77bcf86cd799439011
+Content-Type: application/json
+
+{
+  "price": 54.99,
+  "inStock": false
+}
+
+
+// ============================================
+// DELETE PRODUCT (ADMIN)
+// ============================================
+
+DELETE http://localhost:5000/api/products/507f1f77bcf86cd799439011
+
+
+// ============================================
+// EXAMPLE: FULL WORKFLOW WITH cURL
+// ============================================
+
+# 1. Generate a study pack
+curl -X POST http://localhost:5000/api/packs/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "field": "Mathematics",
+    "level": "L1",
+    "goal": "learning",
+    "studyStyle": "visual",
+    "budget": 100
+  }'
+
+# 2. Get all products
+curl http://localhost:5000/api/products
+
+# 3. Create a new product
+curl -X POST http://localhost:5000/api/products \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Calculus Textbook",
+    "price": 89.99,
+    "category": "books",
+    "description": "Comprehensive calculus reference"
+  }'
+
+# 4. List study packs
+curl http://localhost:5000/api/packs
+
+# 5. Health check
+curl http://localhost:5000/api/health

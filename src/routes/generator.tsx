@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, Sparkles } from "lucide-react";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
-import { FIELDS, LEVELS, GOALS, STYLES, type Profile } from "@/lib/products";
+import { FIELDS, LEVELS, GOALS, STYLES, BUDGETS, type Profile } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/generator")({
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/generator")({
   component: GeneratorPage,
 });
 
-const STEPS = ["Field", "Level", "Goal", "Style"] as const;
+const STEPS = ["Field", "Level", "Goal", "Style", "Budget"] as const;
 
 const LOADING_LINES = [
   "Analyzing your profile…",
@@ -39,9 +39,10 @@ function GeneratorPage() {
     (step === 0 && profile.field) ||
     (step === 1 && profile.level) ||
     (step === 2 && profile.goal) ||
-    (step === 3 && profile.style);
+    (step === 3 && profile.style) ||
+    (step === 4 && profile.budget);
 
-  const select = (key: keyof Profile, val: string) => {
+  const select = (key: keyof Profile, val: string | number) => {
     setProfile((p) => ({ ...p, [key]: val }));
   };
 
@@ -51,7 +52,13 @@ function GeneratorPage() {
       await new Promise((r) => setTimeout(r, 800));
       setLoadingLine(i);
     }
-    const params = new URLSearchParams(profile as Record<string, string>);
+    const params = new URLSearchParams({
+      field: profile.field as string,
+      level: profile.level as string,
+      goal: profile.goal as string,
+      style: profile.style as string,
+      budget: String(profile.budget ?? 150),
+    });
     navigate({ to: "/box", search: Object.fromEntries(params) as never });
   };
 
@@ -153,6 +160,25 @@ function GeneratorPage() {
                           />
                         ))}
                       </Grid>
+                    )}
+                    {step === 4 && (
+                      <div className="space-y-3">
+                        <div>
+                          <h2 className="text-2xl font-bold tracking-tight">What's your budget?</h2>
+                          <p className="mt-1 text-sm text-muted-foreground">We'll recommend products within your budget</p>
+                        </div>
+                        <div className="flex flex-col gap-3 pt-2">
+                          {BUDGETS.map((b) => (
+                            <OptionCard
+                              key={b.value}
+                              label={b.label}
+                              desc={b.desc}
+                              selected={profile.budget === b.value}
+                              onClick={() => select("budget", b.value)}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </motion.div>
                 </AnimatePresence>

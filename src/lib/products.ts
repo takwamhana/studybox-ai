@@ -105,6 +105,266 @@ export const PRODUCTS: Product[] = [
     fields: ["computer-science", "engineering", "medicine"],
     styles: ["organized", "last-minute", "minimalistic"],
   },
+  // Law & Legal Studies
+  {
+    id: "case-highlighter-set",
+    name: "Case Law Highlighter Set",
+    tagline: "Color-code legal briefs",
+    description:
+      "Professional-grade highlighter set (4 colors) optimized for legal document annotation without bleeding through thin case law pages.",
+    price: 16,
+    category: "Stationery",
+    image: stickies,
+    fields: ["law", "political-science"],
+    styles: ["organized", "visual"],
+  },
+  {
+    id: "legal-pad-pro",
+    name: "Legal Pad Pro",
+    tagline: "Yellow perfection",
+    description:
+      "Traditional 50-sheet legal pad with premium paper quality, ideal for case notes and statutory analysis.",
+    price: 12,
+    category: "Stationery",
+    image: notebook,
+    fields: ["law"],
+    styles: ["organized", "last-minute"],
+  },
+  {
+    id: "statute-tracker",
+    name: "Statute Tracking Planner",
+    tagline: "Track amendments and updates",
+    description:
+      "Specialized planner for law students to track statutory changes, case amendments, and study topics with reference columns.",
+    price: 28,
+    category: "Planning",
+    image: planner,
+    fields: ["law", "political-science"],
+    styles: ["organized", "visual"],
+  },
+  // Medicine & Healthcare
+  {
+    id: "anatomy-flashcards",
+    name: "Anatomy Flashcard Deck",
+    tagline: "Memorize systems fast",
+    description:
+      "1000+ medical imagery flashcards with Latin terms, organized by body system. Perfect for pre-clinical and clinical study.",
+    price: 35,
+    category: "Stationery",
+    image: stickies,
+    fields: ["medicine", "nursing", "pharmacy"],
+    styles: ["visual", "organized"],
+  },
+  {
+    id: "med-study-timer",
+    name: "Pomodoro Study Timer",
+    tagline: "60 min blocks for exams",
+    description:
+      "Physical timer optimized for medical study sessions with 25/60 min intervals, reducing screen time during long study hours.",
+    price: 26,
+    category: "Tech",
+    image: lamp,
+    fields: ["medicine", "nursing", "pharmacy"],
+    styles: ["organized", "last-minute"],
+  },
+  {
+    id: "eponyms-reference",
+    name: "Medical Eponyms Reference",
+    tagline: "500+ diseases & tests",
+    description:
+      "Laminated pocket reference guide for medical eponyms, syndromes, and clinical tests — perfect for hospital rounds and exams.",
+    price: 15,
+    category: "Stationery",
+    image: notebook,
+    fields: ["medicine"],
+    styles: ["minimalistic", "visual"],
+  },
+  // Computer Science & Engineering
+  {
+    id: "code-notebook",
+    name: "Code Pattern Notebook",
+    tagline: "Algorithms & data structures",
+    description:
+      "Engineering notebook pre-printed with code templates and algorithm patterns for CS students learning design patterns.",
+    price: 27,
+    category: "Stationery",
+    image: notebook,
+    fields: ["computer-science", "engineering", "data-science"],
+    styles: ["organized", "minimalistic"],
+  },
+  {
+    id: "math-compass-set",
+    name: "Engineering Compass Set",
+    tagline: "Precision for diagrams",
+    description:
+      "Professional-grade compass, protractor, and ruler set for creating precise technical diagrams and circuit sketches.",
+    price: 21,
+    category: "Stationery",
+    image: pen,
+    fields: ["engineering", "architecture", "mathematics", "physics"],
+    styles: ["organized", "minimalistic"],
+  },
+  {
+    id: "graph-paper-pad",
+    name: "Grid Pattern Pad (20 sheets)",
+    tagline: "Perfect for sketches",
+    description:
+      "Premium graph paper for circuit diagrams, 3D sketches, and mathematical graphs. 50gsm prevents bleeding from ink pens.",
+    price: 11,
+    category: "Stationery",
+    image: notebook,
+    fields: ["computer-science", "engineering", "mathematics", "physics", "architecture"],
+    styles: ["organized", "visual"],
+  },
+  // Business & Economics
+  {
+    id: "excel-shortcut-guide",
+    name: "Excel Keyboard Guide",
+    tagline: "Laminated shortcut reference",
+    description:
+      "Pocket-sized laminated cheat sheet with 100+ Excel shortcuts for financial modeling, accounting, and data analysis.",
+    price: 8,
+    category: "Stationery",
+    image: pen,
+    fields: ["business", "finance", "economics", "data-science"],
+    styles: ["minimalistic"],
+  },
+  {
+    id: "financial-calculator",
+    name: "Scientific Calculator",
+    tagline: "TI-approved for finance",
+    description:
+      "Financial calculator with NPV, IRR, and cash flow functions. Approved for exams in accounting, finance, and economics courses.",
+    price: 45,
+    category: "Tech",
+    image: headphones,
+    fields: ["business", "finance", "economics"],
+    styles: ["organized"],
+  },
+  {
+    id: "case-study-organizer",
+    name: "Business Case Organizer",
+    tagline: "Structured case analysis",
+    description:
+      "Pre-formatted workbook for case study analysis with sections for SWOT, Porter's Five Forces, and strategic recommendations.",
+    price: 19,
+    category: "Planning",
+    image: planner,
+    fields: ["business", "marketing"],
+    styles: ["organized", "visual"],
+  },
+  // Psychology & Social Sciences
+  {
+    id: "research-notebook",
+    name: "Research Methods Notebook",
+    tagline: "Lab & study tracking",
+    description:
+      "Specialized notebook with pre-printed sections for hypothesis, methodology, data, and conclusions for psychology research.",
+    price: 23,
+    category: "Stationery",
+    image: notebook,
+    fields: ["psychology", "biology", "education"],
+    styles: ["organized"],
+  },
+  {
+    id: "theory-index-cards",
+    name: "Theory Index Card Set",
+    tagline: "300 cards for theories",
+    description:
+      "Pre-cut index cards ideal for organizing psychological theories, cognitive concepts, and behavioral models by school of thought.",
+    price: 9,
+    category: "Stationery",
+    image: stickies,
+    fields: ["psychology", "education", "literature"],
+    styles: ["organized", "visual"],
+  },
+  // Languages & Literature
+  {
+    id: "translation-notebook",
+    name: "Bilingual Translation Pad",
+    tagline: "Side-by-side format",
+    description:
+      "Notebook divided into two columns for translating between languages while studying literature and linguistics.",
+    price: 20,
+    category: "Stationery",
+    image: notebook,
+    fields: ["languages", "literature"],
+    styles: ["organized"],
+  },
+  {
+    id: "etymology-flashcards",
+    name: "Etymology Flashcard Deck",
+    tagline: "500+ word roots & prefixes",
+    description:
+      "Master language acquisition through etymological patterns. Covers prefixes, suffixes, and roots across Romance and Germanic languages.",
+    price: 18,
+    category: "Stationery",
+    image: stickies,
+    fields: ["languages", "literature"],
+    styles: ["visual", "organized"],
+  },
+  // Sciences (Physics, Chemistry, Biology)
+  {
+    id: "periodic-table-poster",
+    name: "Periodic Table Poster",
+    tagline: "Laminated A1 size",
+    description:
+      "Large laminated periodic table with oxidation states, electron configurations, and common reactions. Perfect for desk reference.",
+    price: 14,
+    category: "Stationery",
+    image: notebook,
+    fields: ["chemistry", "physics", "biology"],
+    styles: ["minimalistic", "visual"],
+  },
+  {
+    id: "lab-safety-kit",
+    name: "Study Space Safety Kit",
+    tagline: "Desk safety essentials",
+    description:
+      "Ergonomic desk accessories including wrist rest, monitor stand, and posture guide for long lab report and problem set sessions.",
+    price: 32,
+    category: "Tech",
+    image: lamp,
+    fields: ["chemistry", "biology", "physics", "engineering"],
+    styles: ["organized"],
+  },
+  {
+    id: "molecular-model-set",
+    name: "Molecular Model Kit",
+    tagline: "Build 3D structures",
+    description:
+      "Comprehensive molecular model kit with 50+ atoms and bonds to construct organic compounds and crystal structures for chemistry study.",
+    price: 38,
+    category: "Tech",
+    image: headphones,
+    fields: ["chemistry", "biology"],
+    styles: ["visual"],
+  },
+  // Architecture & Design
+  {
+    id: "sketching-pencil-set",
+    name: "Professional Sketching Set",
+    tagline: "12-grade pencil range",
+    description:
+      "Complete series of drawing pencils (2H to 8B) for architectural sketches, 3D renderings, and design ideation work.",
+    price: 29,
+    category: "Stationery",
+    image: pen,
+    fields: ["architecture", "design"],
+    styles: ["visual"],
+  },
+  {
+    id: "scale-ruler",
+    name: "Architect Scale Ruler",
+    tagline: "6 different scales",
+    description:
+      "Triangular scale ruler with 6 architectural scales for accurate drawing proportions in design studio projects and presentations.",
+    price: 17,
+    category: "Stationery",
+    image: pen,
+    fields: ["architecture", "design", "engineering"],
+    styles: ["organized"],
+  },
 ];
 
 export const FIELDS = [
@@ -156,11 +416,19 @@ export const STYLES = [
   { value: "minimalistic", label: "Minimalistic", desc: "Less stuff, more clarity" },
 ] as const;
 
+export const BUDGETS = [
+  { value: 50, label: "Budget-friendly", desc: "Under $50" },
+  { value: 100, label: "Balanced", desc: "$50 - $100" },
+  { value: 150, label: "Premium", desc: "$100 - $150" },
+  { value: 300, label: "Complete kit", desc: "$150+" },
+] as const;
+
 export type Profile = {
   field: string;
   level: string;
   goal: string;
   style: string;
+  budget?: number;
 };
 
 export function generateBox(p: Profile): { products: Product[]; rationale: Record<string, string> } {
@@ -174,14 +442,28 @@ export function generateBox(p: Profile): { products: Product[]; rationale: Recor
     if (p.goal === "revision" && prod.category === "Stationery") s += 1;
     return { prod, s };
   })
-    .sort((a, b) => b.s - a.s)
-    .slice(0, 5);
+    .sort((a, b) => b.s - a.s);
+
+  // Filter by budget and build box
+  const budget = p.budget ?? 150;
+  const selected: typeof scored = [];
+  let total = 0;
+
+  for (const item of scored) {
+    if (total + item.prod.price <= budget) {
+      selected.push(item);
+      total += item.prod.price;
+    }
+  }
+
+  // Ensure at least 3 items if budget allows
+  const result = selected.slice(0, 8);
 
   const rationale: Record<string, string> = {};
-  scored.forEach(({ prod }) => {
+  result.forEach(({ prod }) => {
     rationale[prod.id] = `Matches your ${p.style} style for ${p.goal}.`;
   });
-  return { products: scored.map((x) => x.prod), rationale };
+  return { products: result.map((x) => x.prod), rationale };
 }
 
 export type SavedBox = {

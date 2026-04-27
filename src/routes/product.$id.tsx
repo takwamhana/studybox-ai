@@ -4,7 +4,9 @@ import { Layout } from "@/components/site/Layout";
 import { Reveal } from "@/components/site/Reveal";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/lib/cart";
 import { PRODUCTS, FIELDS } from "@/lib/products";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/product/$id")({
   loader: ({ params }) => {
@@ -38,10 +40,16 @@ export const Route = createFileRoute("/product/$id")({
 
 function ProductPage() {
   const { product } = Route.useLoaderData();
+  const cart = useCart();
   const recommended = PRODUCTS.filter((p) => p.id !== product.id).slice(0, 4);
   const fieldLabels: string[] = product.fields
     .map((f: string) => FIELDS.find((x) => x.value === f)?.label)
     .filter((l: string | undefined): l is string => Boolean(l));
+
+  const handleAddToCart = () => {
+    cart.addItem(product);
+    toast.success(`Added ${product.name} to cart`);
+  };
 
   return (
     <Layout>
@@ -83,10 +91,15 @@ function ProductPage() {
                 <p className="mt-6 text-sm leading-relaxed text-foreground/80">{product.description}</p>
 
                 <div className="mt-8 flex flex-wrap gap-3">
-                  <Button size="lg" className="shadow-soft-md hover:-translate-y-0.5 transition-transform">
+                  <Button onClick={handleAddToCart} size="lg" className="shadow-soft-md hover:-translate-y-0.5 transition-transform">
                     <ShoppingBag className="mr-1.5 h-4 w-4" /> Add to cart
                   </Button>
                   <Button asChild variant="secondary" size="lg">
+                    <Link to="/cart">
+                      <ShoppingBag className="mr-1.5 h-4 w-4" /> View cart
+                    </Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="lg">
                     <Link to="/generator">
                       <Sparkles className="mr-1.5 h-4 w-4" /> Generate matching box
                     </Link>
