@@ -114,13 +114,32 @@ export const FIELDS = [
   { value: "engineering", label: "Engineering" },
   { value: "business", label: "Business" },
   { value: "design", label: "Design" },
+  { value: "psychology", label: "Psychology" },
+  { value: "economics", label: "Economics" },
+  { value: "biology", label: "Biology" },
+  { value: "chemistry", label: "Chemistry" },
+  { value: "physics", label: "Physics" },
+  { value: "mathematics", label: "Mathematics" },
+  { value: "architecture", label: "Architecture" },
+  { value: "literature", label: "Literature" },
+  { value: "history", label: "History" },
+  { value: "political-science", label: "Political Science" },
+  { value: "communication", label: "Communication & Media" },
+  { value: "education", label: "Education" },
+  { value: "nursing", label: "Nursing" },
+  { value: "pharmacy", label: "Pharmacy" },
+  { value: "data-science", label: "Data Science & AI" },
+  { value: "marketing", label: "Marketing" },
+  { value: "finance", label: "Finance & Accounting" },
+  { value: "languages", label: "Languages & Linguistics" },
 ] as const;
 
 export const LEVELS = [
-  { value: "L1", label: "L1 — First year" },
-  { value: "L2", label: "L2 — Second year" },
-  { value: "L3", label: "L3 — Third year" },
-  { value: "Master", label: "Master" },
+  { value: "high-school", label: "High School", desc: "Preparing for university" },
+  { value: "undergraduate", label: "Undergraduate", desc: "Bachelor's / Licence" },
+  { value: "graduate", label: "Graduate", desc: "Master's level" },
+  { value: "phd", label: "PhD", desc: "Doctoral research" },
+  { value: "professional", label: "Professional Development", desc: "Continuing education" },
 ] as const;
 
 export const GOALS = [
