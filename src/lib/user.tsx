@@ -48,7 +48,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const token = localStorage.getItem("studybox.token");
+        const token = sessionStorage.getItem("studybox.token");
         if (token) {
           const response = await fetch(`${API_URL}/api/auth/me`, {
             headers: {
@@ -68,7 +68,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
               statistics: data.statistics,
             });
           } else {
-            localStorage.removeItem("studybox.token");
+            sessionStorage.removeItem("studybox.token");
           }
         }
       } catch (err) {
@@ -100,7 +100,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         throw new Error(data.error || "Login failed");
       }
 
-      localStorage.setItem("studybox.token", data.token);
+      sessionStorage.setItem("studybox.token", data.token);
       setUser({
         id: data.user._id,
         email: data.user.email,
@@ -138,7 +138,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         throw new Error(data.error || "Signup failed");
       }
 
-      localStorage.setItem("studybox.token", data.token);
+      sessionStorage.setItem("studybox.token", data.token);
       setUser({
         id: data.user._id,
         email: data.user.email,
@@ -158,7 +158,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem("studybox.token");
+    sessionStorage.removeItem("studybox.token");
     setUser(null);
     setError(null);
   };
@@ -168,7 +168,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     try {
       setError(null);
-      const token = localStorage.getItem("studybox.token");
+      const token = sessionStorage.getItem("studybox.token");
 
       const response = await fetch(`${API_URL}/api/users/${user.id}`, {
         method: "PATCH",
@@ -206,7 +206,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     if (!user) return;
 
     try {
-      const token = localStorage.getItem("studybox.token");
+      const token = sessionStorage.getItem("studybox.token");
       const response = await fetch(`${API_URL}/api/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,

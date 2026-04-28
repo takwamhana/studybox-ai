@@ -34,7 +34,7 @@ export const useAIGenerate = () => {
         return null;
       }
 
-      const token = localStorage.getItem("studybox.token");
+      const token = sessionStorage.getItem("studybox.token");
       if (!token) {
         setError("Authentication token not found");
         return null;
