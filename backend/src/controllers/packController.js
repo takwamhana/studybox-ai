@@ -9,7 +9,8 @@ import User from '../models/User.js';
  */
 export const generateStudyPack_Handler = async (req, res) => {
   try {
-    const { field, level, goal, studyStyle, budget } = req.body;
+    const { field, level, goal, studyStyle, budget, saveResult = true } = req.body;
+    const normalizedBudget = typeof budget === 'number' ? budget : Number(budget);
 
     // Validate input - comprehensive checks
     if (!field || !level || !goal || !studyStyle || budget === undefined) {
@@ -19,32 +20,23 @@ export const generateStudyPack_Handler = async (req, res) => {
       });
     }
 
-    if (typeof budget !== 'number' || budget < 10) {
+    if (!Number.isFinite(normalizedBudget) || normalizedBudget < 10) {
       return res.status(400).json({
         success: false,
         error: 'Budget must be a number ≥ 10 DT',
       });
     }
 
-    if (budget > 10000) {
+    if (normalizedBudget > 10000) {
       return res.status(400).json({
         success: false,
         error: 'Budget exceeds maximum limit of 10,000 DT',
       });
     }
 
-    // Validate field/level/goal are recognized values
-    const validFields = ['computer-science', 'medicine', 'law', 'engineering', 'business', 'psychology', 'mathematics', 'physics', 'chemistry', 'history'];
     const validLevels = ['high-school', 'undergraduate', 'graduate', 'phd', 'professional'];
-    const validGoals = ['exams', 'projects', 'revision', 'internship', 'mastery', 'certification'];
-    const validStyles = ['organized', 'last-minute', 'visual', 'minimalistic', 'collaborative', 'hands-on'];
-
-    if (!validFields.includes(field)) {
-      return res.status(400).json({
-        success: false,
-        error: `Invalid field. Accepted: ${validFields.join(', ')}`,
-      });
-    }
+    const validGoals = ['exams', 'projects', 'revision', 'internship'];
+    const validStyles = ['organized', 'last-minute', 'visual', 'minimalistic'];
 
     if (!validLevels.includes(level)) {
       return res.status(400).json({
@@ -67,7 +59,7 @@ export const generateStudyPack_Handler = async (req, res) => {
       });
     }
 
-    console.log(`Generating study pack for: ${field} | ${level} | ${goal} | ${studyStyle} | Budget: ${budget} DT`);
+    console.log(`Generating study pack for: ${field} | ${level} | ${goal} | ${studyStyle} | Budget: ${normalizedBudget} DT`);
 
     // Generate pack using AI service
     const generatedPack = await generateStudyPack({
@@ -75,8 +67,15 @@ export const generateStudyPack_Handler = async (req, res) => {
       level,
       goal,
       studyStyle,
-      budget,
+      budget: normalizedBudget,
     });
+
+    if (!saveResult) {
+      return res.status(200).json({
+        success: true,
+        generatedPack,
+      });
+    }
 
     // Get user for gamification
     const user = await User.findById(req.user.userId);
@@ -97,7 +96,7 @@ export const generateStudyPack_Handler = async (req, res) => {
         level,
         goal,
         studyStyle,
-        budget,
+        budget: normalizedBudget,
       },
       generatedPack,
     });
@@ -117,7 +116,7 @@ export const generateStudyPack_Handler = async (req, res) => {
     const newBadges = checkAndUnlockBadges(user, {
       isFirstPack,
       packCost: generatedPack.totalEstimatedCost,
-      budget,
+      budget: normalizedBudget,
       goal,
     });
 

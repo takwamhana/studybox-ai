@@ -56,16 +56,19 @@ function GeneratorPage() {
 
   const submit = async () => {
     setLoading(true);
-    for (let i = 0; i < LOADING_LINES.length; i++) {
-      await new Promise((r) => setTimeout(r, 800));
+    const budgetNumber = Number.parseInt(customBudget, 10);
+
+    for (let i = 0; i < LOADING_LINES.length; i += 1) {
       setLoadingLine(i);
+      await new Promise((r) => setTimeout(r, 500));
     }
+
     const params = new URLSearchParams({
       field: profile.field as string,
       level: profile.level as string,
       goal: profile.goal as string,
       style: profile.style as string,
-      budget: customBudget,
+      budget: String(Number.isFinite(budgetNumber) ? budgetNumber : 150),
     });
     navigate({ to: "/box", search: Object.fromEntries(params) as never });
   };
@@ -327,7 +330,7 @@ function GeneratorPage() {
                     transition={{ duration: 0.3 }}
                     className="absolute inset-x-0 text-sm text-muted-foreground"
                   >
-                    {LOADING_LINES[loadingLine]}
+                    {loadingLine === 0 ? "Generating your personalized StudyBox..." : LOADING_LINES[loadingLine]}
                   </motion.p>
                 </AnimatePresence>
               </div>

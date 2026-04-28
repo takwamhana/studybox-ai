@@ -12,22 +12,22 @@ const studyPackSchema = new mongoose.Schema(
       field: {
         type: String,
         required: true,
-        enum: ['Computer Science', 'Engineering', 'Medicine', 'Business', 'Law', 'Arts'],
+        trim: true,
       },
       level: {
         type: String,
         required: true,
-        enum: ['L1', 'L2', 'L3', 'Master'],
+        trim: true,
       },
       goal: {
         type: String,
         required: true,
-        enum: ['Exams', 'Projects', 'Revision', 'Internship'],
+        trim: true,
       },
       studyStyle: {
         type: String,
         required: true,
-        enum: ['Organized', 'Last-minute', 'Visual learner', 'Minimalist'],
+        trim: true,
       },
       budget: {
         type: Number,

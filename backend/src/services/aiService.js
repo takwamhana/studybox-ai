@@ -1,175 +1,192 @@
-import { OpenAI } from 'openai';
+import openai from '../config/openai.js';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const BUDGET_BUFFER_RATIO = 0.98;
 
-// Context-aware descriptions for different parameters
-const getFieldContext = (field) => {
-  const contexts = {
-    'computer-science': 'focuses on coding, algorithms, data structures, software design, debugging, and problem-solving',
-    'medicine': 'focuses on anatomy, physiology, pathology, drug interactions, clinical diagnoses, and patient care',
-    'law': 'focuses on case law precedents, statutes, legal research, argumentation, and courtroom advocacy',
-    'engineering': 'focuses on circuits, thermodynamics, mechanics, technical drawings, CAD, and system design',
-    'business': 'focuses on strategy, financial analysis, marketing campaigns, case studies, and Excel modeling',
-    'psychology': 'focuses on theories, research methods, behavioral concepts, statistics, and case studies',
-    'mathematics': 'focuses on proofs, problem solving, abstract concepts, formulas, and practice exercises',
-    'physics': 'focuses on formulas, lab experiments, problem-solving, visualization, and real-world applications',
-    'chemistry': 'focuses on reactions, molecular structures, lab work, periodic table, and chemical equations',
-    'history': 'focuses on timelines, primary sources, critical analysis, and historical context',
-    'default': 'focuses on general academic study'
-  };
-  return contexts[field] || contexts['default'];
+const toSafeNumber = (value) => {
+  if (typeof value === 'number') return value;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const getGoalContext = (goal) => {
-  const contexts = {
-    'exams': 'prepare for high-stakes final exams via intensive revision, active recall, and repeated practice tests',
-    'projects': 'complete long-form group projects through structured research, collaboration tools, and organization',
-    'revision': 'maintain steady weekly study habits and progressively deepen conceptual understanding',
-    'internship': 'develop practical, career-ready skills with industry-standard tools and professional preparation',
-    'mastery': 'achieve deep expertise and comprehensive subject knowledge through advanced materials',
-    'certification': 'pass professional certifications with focused study on exam domains and practice tests',
-    'default': 'general study preparation'
+const buildFallbackPack = ({ field, level, goal, studyStyle, budget }) => {
+  const target = Math.max(10, Math.round(budget * 0.85));
+  const essentials = [
+    {
+      name: `${field} quick review notebook`,
+      category: 'stationery',
+      price: Math.max(12, Math.round(target * 0.2)),
+      reason: `Keeps ${level} ${field} notes structured for your ${goal} objective.`,
+    },
+    {
+      name: `${goal} focused planning board`,
+      category: 'planning',
+      price: Math.max(10, Math.round(target * 0.18)),
+      reason: `Translates your ${studyStyle} study style into a practical weekly action plan.`,
+    },
+    {
+      name: `${field} active recall flashcards`,
+      category: 'books',
+      price: Math.max(8, Math.round(target * 0.2)),
+      reason: `Boosts retention speed for ${field} concepts and supports stronger exam/project execution.`,
+    },
+    {
+      name: `${studyStyle} productivity timer`,
+      category: 'electronics',
+      price: Math.max(9, Math.round(target * 0.17)),
+      reason: `Improves session consistency and helps reach your ${goal} milestone faster.`,
+    },
+  ];
+
+  let runningCost = 0;
+  const items = essentials.filter((item) => {
+    if (runningCost + item.price > budget) return false;
+    runningCost += item.price;
+    return true;
+  });
+
+  return {
+    packName: `${field} ${goal} Smart Box`,
+    description: `A practical ${studyStyle} study setup designed for ${level} ${field} students targeting ${goal}.`,
+    totalEstimatedCost: runningCost,
+    currency: 'DT',
+    items,
   };
-  return contexts[goal] || contexts['default'];
 };
 
-const getStyleRecommendations = (style) => {
-  const recs = {
-    'organized': 'structured planners, color-coded systems, digital tools (Notion/OneNote), task managers, time-blocking supplies',
-    'last-minute': 'quick reference guides, high-efficiency tools, pomodoro timers, energy management aids, cheat sheets',
-    'visual': 'mind mapping software, color highlighters, diagrams, infographics, video learning platforms, visual flashcards',
-    'minimalistic': 'essential tools only, digital-first approach, single notebook system, distraction blockers, minimal supplies',
-    'collaborative': 'communication tools, shared docs, group planning materials, presentation supplies',
-    'hands-on': 'practice materials, lab supplies, interactive tools, building kits, tangible learning aids',
-    'default': 'balanced study tools'
+const sanitizeGeneratedPack = (generatedPack, budget) => {
+  const items = Array.isArray(generatedPack?.items) ? generatedPack.items : [];
+  const sanitizedItems = [];
+  let total = 0;
+  const maxAllowed = Math.max(10, Math.floor(budget * BUDGET_BUFFER_RATIO));
+
+  for (const item of items) {
+    const name = typeof item?.name === 'string' ? item.name.trim() : '';
+    const category = typeof item?.category === 'string' ? item.category.trim() : 'other';
+    const reason = typeof item?.reason === 'string' ? item.reason.trim() : '';
+    const price = Math.round(toSafeNumber(item?.price));
+
+    if (!name || !reason || price <= 0) continue;
+    if (total + price > maxAllowed) continue;
+
+    sanitizedItems.push({ name, category, price, reason });
+    total += price;
+  }
+
+  if (sanitizedItems.length === 0) {
+    throw new Error('AI generated empty or invalid items');
+  }
+
+  return {
+    packName: typeof generatedPack?.packName === 'string' && generatedPack.packName.trim()
+      ? generatedPack.packName.trim()
+      : 'Personalized StudyBox',
+    description: typeof generatedPack?.description === 'string' && generatedPack.description.trim()
+      ? generatedPack.description.trim()
+      : 'A personalized study pack designed for your profile and budget.',
+    currency: 'DT',
+    totalEstimatedCost: total,
+    items: sanitizedItems,
   };
-  return recs[style] || recs['default'];
 };
 
-const getLevelRecommendations = (level) => {
-  const recs = {
-    'high-school': 'foundational textbooks, basic stationery, official study guides, practice problem sets, tutoring access',
-    'undergraduate': 'comprehensive textbooks, advanced note-taking tools, research databases (academic access), professional software',
-    'graduate': 'specialized research materials, academic subscriptions (JSTOR, IEEE), advanced software, professional networks',
-    'phd': 'cutting-edge research databases, specialized journals, publishing tools, conference materials, research collaboration platforms',
-    'professional': 'certification prep materials, industry software, continuing education courses, professional development tools',
-    'default': 'standard academic materials'
-  };
-  return recs[level] || recs['default'];
-};
+const buildPrompt = ({ field, level, goal, studyStyle, budget }) => `You are an expert educational advisor and ecommerce recommendation engine.
+
+Generate a personalized student study box for:
+Field: ${field}
+Level: ${level}
+Goal: ${goal}
+Study Style: ${studyStyle}
+Budget: ${budget} DT
+
+Requirements:
+- Respect budget strictly. Total must be <= ${budget} DT.
+- Use Tunisian Dinar only.
+- Recommend realistic products students can buy in Tunisia or online.
+- Every item must clearly fit the selected field, level, goal, and style.
+- Keep the list practical and outcome-driven (usually 4 to 8 items).
+- Lower budget: prioritize essentials only.
+- Higher budget: include premium productivity or learning upgrades.
+- Return JSON only, no markdown and no extra text.
+
+Return valid JSON exactly with this shape:
+{
+  "packName": "",
+  "description": "",
+  "totalEstimatedCost": 0,
+  "currency": "DT",
+  "items": [
+    {
+      "name": "",
+      "category": "",
+      "price": 0,
+      "reason": ""
+    }
+  ]
+}`;
 
 export const generateStudyPack = async (input, retryCount = 0) => {
   const { field, level, goal, studyStyle, budget } = input;
 
-  const fieldContext = getFieldContext(field);
-  const goalContext = getGoalContext(goal);
-  const styleRecommendations = getStyleRecommendations(studyStyle);
-  const levelRecommendations = getLevelRecommendations(level);
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is missing');
+  }
 
-  const prompt = `You are an expert educational consultant specializing in creating hyper-personalized study kits optimized for success.
-
-STUDENT PROFILE:
-- Field: ${field} (${fieldContext})
-- Level: ${level} (${levelRecommendations})
-- Goal: ${goal} (${goalContext})
-- Style: ${studyStyle} (Recommend: ${styleRecommendations})
-- Budget: ${budget} DT (ABSOLUTE MAXIMUM - do not exceed)
-
-GENERATION RULES:
-1. Select 5-10 items TAILORED to THIS exact combination of field+goal+level+style
-2. Each item MUST have a specific reason WHY it helps achieve the goal
-3. Prioritize: ${goal === 'exams' ? 'active recall tools, practice materials, time management' : goal === 'projects' ? 'collaboration tools, research resources, organization' : goal === 'internship' ? 'professional skills, portfolio building, industry tools' : 'comprehensive understanding, progressive learning'}
-4. Think like a coach: suggest items that give competitive advantage
-5. Validate total price ≤ ${budget} DT before responding
-
-EXAMPLE ITEMS FOR ${field.toUpperCase()}:
-${field === 'computer-science' ? '- VS Code Premium, Leetcode Subscription, Algorithm visualization tools, Debugger hardware' : 
-field === 'medicine' ? '- Anatomy flash cards, Pathology atlases, Medical simulation software, Case study collections' :
-field === 'law' ? '- Legal research database (LexisNexis), Case precedent collections, Legal writing guides, Moot court materials' :
-field === 'business' ? '- Financial modeling software, Market analysis tools, Case study databases, Business simulation softwares' :
-field === 'psychology' ? '- Research methodology guides, Statistics software, Psychology databases, Study material compilations' :
-field === 'mathematics' ? '- Graphing calculators, Proof writing guides, Problem solution manuals, Online tutoring subscriptions' :
-field === 'physics' ? '- Lab simulation software, Physics problem solvers, Visualization tools, Formula reference cards' :
-field === 'engineering' ? '- CAD software, Circuit simulators, Engineering calculators, Technical reference manuals' :
-field === 'chemistry' ? '- Molecular modeling software, Periodic table infographics, Lab safety guides, Reaction databases' :
-field === 'history' ? '- Primary source collections, Timeline tools, Historical databases, Documentary subscriptions' :
-'- Study guides, note-taking tools, organization supplies'}
-
-RESPONSE FORMAT (JSON ONLY):
-{
-  "packName": "Specific, creative name reflecting the ${goal} goal for ${field} students",
-  "description": "1 sentence: Why this pack solves THIS student's exact challenge",
-  "totalEstimatedCost": [number, must be ≤ ${budget}],
-  "currency": "DT",
-  "items": [
-    {
-      "name": "[Specific product name]",
-      "category": "[stationery|electronics|books|courses|software|physical tools|services]",
-      "price": [number in DT],
-      "reason": "[${field}] + [${goal}] + [${level}] context: Specific, concrete benefit"
-    }
-  ]
-}
-
-CRITICAL: Return ONLY valid JSON. No markdown, no explanation.`;
+  const prompt = buildPrompt({ field, level, goal, studyStyle, budget });
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      response_format: { type: 'json_object' },
       messages: [
+        {
+          role: 'system',
+          content: 'You generate budget-aware academic recommendation JSON. Always output valid JSON only.',
+        },
         {
           role: 'user',
           content: prompt,
         },
       ],
-      temperature: 0.7, // Balanced for consistency + creativity
-      max_tokens: 2500,
+      temperature: 0.9,
+      max_tokens: 1800,
     });
 
-    const content = response.choices[0].message.content;
-
-    // Extract JSON from the response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('Invalid response format from AI');
+    const content = response.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error('Empty AI response');
     }
 
-    const generatedPack = JSON.parse(jsonMatch[0]);
-
-    // Validate output
-    if (!generatedPack.items || generatedPack.items.length === 0) {
-      throw new Error('AI generated pack with no items');
+    let parsed;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      throw new Error('Malformed JSON returned by AI');
     }
 
-    // Final budget validation
-    if (generatedPack.totalEstimatedCost > budget) {
-      throw new Error(`Generated pack exceeds budget: ${generatedPack.totalEstimatedCost} DT > ${budget} DT`);
-    }
+    const normalizedPack = sanitizeGeneratedPack(parsed, budget);
 
-    // Ensure all prices are valid
-    if (generatedPack.items.some(item => typeof item.price !== 'number' || item.price < 0)) {
-      throw new Error('Invalid item prices in generated pack');
-    }
-
-    // Enhance response with metadata
     return {
-      ...generatedPack,
+      ...normalizedPack,
       profile: { field, level, goal, studyStyle, budget },
       generatedAt: new Date().toISOString(),
     };
   } catch (error) {
-    console.error('AI Generation Error:', error);
-    
-    // Retry logic for transient errors
-    if (retryCount < 2 && (error.message.includes('timeout') || error.message.includes('rate_limit'))) {
-      console.log(`Retrying AI generation (attempt ${retryCount + 1})...`);
-      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
+    const message = error instanceof Error ? error.message : 'Unknown AI error';
+    console.error('AI Generation Error:', message);
+
+    if (retryCount < 2 && /(timeout|rate|429|temporarily unavailable)/i.test(message)) {
+      await new Promise((resolve) => setTimeout(resolve, 1200 * (retryCount + 1)));
       return generateStudyPack(input, retryCount + 1);
     }
 
-    throw new Error('Failed to generate study pack: ' + error.message);
+    const fallbackPack = buildFallbackPack({ field, level, goal, studyStyle, budget });
+    return {
+      ...fallbackPack,
+      profile: { field, level, goal, studyStyle, budget },
+      generatedAt: new Date().toISOString(),
+      fallback: true,
+      fallbackReason: message,
+    };
   }
 };
 

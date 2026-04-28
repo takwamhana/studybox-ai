@@ -5,6 +5,7 @@ import { Profile } from "./products";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 export interface AIGeneratedBox {
+  id?: string;
   packName: string;
   description: string;
   totalEstimatedCost: number;
@@ -40,6 +41,9 @@ export const useAIGenerate = () => {
         return null;
       }
 
+      const resolvedBudget = Number(profile.budget);
+      const safeBudget = Number.isFinite(resolvedBudget) && resolvedBudget > 0 ? resolvedBudget : 150;
+
       const response = await fetch(`${API_URL}/api/packs/generate`, {
         method: "POST",
         headers: {
@@ -51,13 +55,14 @@ export const useAIGenerate = () => {
           level: profile.level,
           goal: profile.goal,
           studyStyle: profile.style,
-          budget: profile.budget || 150,
+          budget: safeBudget,
+          saveResult: true,
         }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate study box");
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || "Failed to generate study box");
       }
 
       const responseData = await response.json();

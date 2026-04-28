@@ -5,11 +5,18 @@ import { ArrowRight, Check, Save, Share2, Sparkles, ShoppingBag, Loader2 } from 
 import { Layout } from "@/components/site/Layout";
 import { Reveal } from "@/components/site/Reveal";
 import { Button } from "@/components/ui/button";
-import { FIELDS, generateBox, saveBox, type Profile } from "@/lib/products";
+import { FIELDS, saveBox, type Profile } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 import { useUser } from "@/lib/user";
 import { useAIGenerate, type AIGeneratedBox } from "@/lib/useAIGenerate";
 import { toast } from "sonner";
+import notebookImg from "@/assets/product-notebook.jpg";
+import penImg from "@/assets/product-pen.jpg";
+import plannerImg from "@/assets/product-planner.jpg";
+import headphonesImg from "@/assets/product-headphones.jpg";
+import stickiesImg from "@/assets/product-stickies.jpg";
+import mugImg from "@/assets/product-mug.jpg";
+import lampImg from "@/assets/product-lamp.jpg";
 
 type SearchParams = Partial<Profile>;
 
@@ -19,7 +26,12 @@ export const Route = createFileRoute("/box")({
     level: typeof search.level === "string" ? search.level : undefined,
     goal: typeof search.goal === "string" ? search.goal : undefined,
     style: typeof search.style === "string" ? search.style : undefined,
-    budget: typeof search.budget === "string" ? parseInt(search.budget) : undefined,
+    budget:
+      typeof search.budget === "number"
+        ? search.budget
+        : typeof search.budget === "string"
+          ? Number.parseInt(search.budget, 10)
+          : undefined,
   }),
   head: () => ({
     meta: [
@@ -39,6 +51,20 @@ interface ProcessedItem {
   image: string;
 }
 
+const pickItemImage = (name: string, category: string): string => {
+  const text = `${name} ${category}`.toLowerCase();
+
+  if (/(software|electronics|tech|digital|app|keyboard|laptop|timer)/.test(text)) return headphonesImg;
+  if (/(planner|planning|schedule|agenda|organizer)/.test(text)) return plannerImg;
+  if (/(flashcard|sticky|highlight|visual|marker|card)/.test(text)) return stickiesImg;
+  if (/(pen|pencil|writing|stylus)/.test(text)) return penImg;
+  if (/(lamp|light|focus)/.test(text)) return lampImg;
+  if (/(wellness|mug|coffee|ergonomic|comfort)/.test(text)) return mugImg;
+  if (/(book|notebook|notes|revision|study)/.test(text)) return notebookImg;
+
+  return notebookImg;
+};
+
 function BoxPage() {
   const search = useSearch({ from: "/box" });
   const cart = useCart();
@@ -46,8 +72,13 @@ function BoxPage() {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [aiBox, setAiBox] = useState<AIGeneratedBox | null>(null);
-  const [useAI, setUseAI] = useState(true);
-  const { generateBox: generateAIBox, loading: aiLoading } = useAIGenerate();
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  const { generateBox: generateAIBox, loading: aiLoading, error: aiError } = useAIGenerate();
+
+  const normalizedBudget = useMemo(() => {
+    const rawBudget = Number(search.budget);
+    return Number.isFinite(rawBudget) && rawBudget >= 20 ? rawBudget : 150;
+  }, [search.budget]);
 
   // Memoize profile to prevent unnecessary AI API calls
   const profile: Profile = useMemo(
@@ -56,56 +87,44 @@ function BoxPage() {
       level: search.level ?? "undergraduate",
       goal: search.goal ?? "exams",
       style: search.style ?? "organized",
-      budget: search.budget ?? 150,
+      budget: normalizedBudget,
     }),
-    [search.field, search.level, search.goal, search.style, search.budget]
+    [search.field, search.level, search.goal, search.style, normalizedBudget]
   );
 
   // Generate AI box on component mount
   useEffect(() => {
-    const generateBox = async () => {
-      if (user && useAI) {
-        try {
-          const result = await generateAIBox(profile);
-          if (result) {
-            setAiBox(result);
-          } else {
-            setUseAI(false);
-            toast.info("Using standard recommendations");
-          }
-        } catch (err) {
-          setUseAI(false);
-          toast.info("Using standard recommendations");
-        }
+    const generate = async () => {
+      if (!user) {
+        setGenerationError("Please log in to generate your personalized AI StudyBox.");
+        return;
+      }
+
+      setGenerationError(null);
+      const result = await generateAIBox(profile);
+      if (result) {
+        setAiBox(result);
+      } else {
+        setGenerationError(aiError || "Could not generate your StudyBox. Please try again.");
       }
     };
-    generateBox();
-  }, [profile, user, useAI]);
+    generate();
+  }, [profile, user]);
 
   // Convert AI items to processable format
   const processedItems: ProcessedItem[] = useMemo(() => {
-    if (aiBox && user && useAI && !aiLoading) {
-      return aiBox.items.map((item, idx) => ({
-        id: `ai-item-${idx}`,
-        name: item.name,
-        price: item.price,
-        tagline: item.reason,
-        category: item.category,
-        image: "https://via.placeholder.com/400x300?text=" + encodeURIComponent(item.name.substring(0, 15)),
-      }));
+    if (!aiBox?.items?.length) {
+      return [];
     }
-
-    // Fallback to static algorithm
-    const { products } = generateBox(profile);
-    return products.map((p) => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      tagline: p.tagline,
-      category: p.category,
-      image: p.image,
+    return aiBox.items.map((item, idx) => ({
+      id: `ai-item-${idx}`,
+      name: item.name,
+      price: item.price,
+      tagline: item.reason,
+      category: item.category,
+      image: pickItemImage(item.name, item.category),
     }));
-  }, [aiBox, user, useAI, aiLoading, profile]);
+  }, [aiBox]);
 
   const fieldLabel = FIELDS.find((f) => f.value === profile.field)?.label ?? profile.field;
   const total = processedItems.reduce((acc, p) => acc + p.price, 0);
@@ -144,14 +163,14 @@ function BoxPage() {
       }
 
       // Otherwise, try creating a server-side pack from the client-generated box
-      if (token) {
+      if (token && aiBox) {
         const body = {
           input: profile,
           generatedPack: {
-            packName: aiBox?.packName || `${fieldLabel} kit`,
-            description: aiBox?.description || `Custom StudyBox for ${fieldLabel}`,
-            totalEstimatedCost: aiBox?.totalEstimatedCost ?? total,
-            currency: aiBox?.currency ?? "DT",
+            packName: aiBox.packName,
+            description: aiBox.description,
+            totalEstimatedCost: aiBox.totalEstimatedCost,
+            currency: aiBox.currency,
             items: processedItems.map((p) => ({ name: p.name, category: p.category, price: p.price, reason: p.tagline })),
             profile,
             generatedAt: new Date().toISOString(),
@@ -227,18 +246,25 @@ function BoxPage() {
             className="text-center"
           >
             <div className="inline-flex items-center gap-2 rounded-full bg-success/10 text-success px-3 py-1 text-xs font-medium">
-              <Check className="h-3.5 w-3.5" /> StudyBox ready
+              <Check className="h-3.5 w-3.5" /> {aiLoading ? "Generating your personalized StudyBox..." : "StudyBox ready"}
               {aiLoading && <Loader2 className="h-3 w-3 animate-spin ml-1" />}
             </div>
             <h1 className="mt-5 text-4xl md:text-6xl font-bold tracking-tight">
-              Your <span className="gradient-text">StudyBox</span> is ready.
+              {aiLoading ? "Generating your" : "Your"} <span className="gradient-text">StudyBox</span> {aiLoading ? "..." : "is ready."}
             </h1>
             <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-              {useAI && user && !aiLoading
-                ? `AI-personalized for ${fieldLabel} · ${profile.level} · ${profile.goal} · ${profile.style}`
-                : `Curated for ${fieldLabel} · ${profile.level} · ${profile.goal} · ${profile.style}`}
+              {`AI-personalized for ${fieldLabel} · ${profile.level} · ${profile.goal} · ${profile.style}`}
               {profile.budget && ` · ${profile.budget} DT budget`}.
             </p>
+            {aiBox?.packName && !aiLoading && (
+              <p className="mt-2 text-sm text-primary font-medium">{aiBox.packName}</p>
+            )}
+            {aiBox?.description && !aiLoading && (
+              <p className="mt-1 text-sm text-muted-foreground max-w-2xl mx-auto">{aiBox.description}</p>
+            )}
+            {generationError && !aiLoading && (
+              <p className="mt-3 text-sm text-destructive">{generationError}</p>
+            )}
           </motion.div>
 
           {/* SUMMARY BAR */}
@@ -251,7 +277,7 @@ function BoxPage() {
                 <div>
                   <div className="text-sm text-muted-foreground">
                     {processedItems.length} items in your box
-                    {useAI && user && " (AI-optimized)"}
+                    {" (AI-optimized)"}
                   </div>
                   <div className="text-2xl font-bold tabular-nums">{total} DT</div>
                 </div>
@@ -263,7 +289,7 @@ function BoxPage() {
                 <Button
                   variant="secondary"
                   onClick={handleSave}
-                  disabled={isSaving || !user}
+                  disabled={isSaving || !user || !aiBox}
                   title={!user ? "Login to save boxes" : ""}
                 >
                   <Save className="mr-1 h-4 w-4" /> {isSaving ? "Saving..." : user ? "Save box" : "Login to save"}
@@ -282,6 +308,11 @@ function BoxPage() {
 
           {/* PRODUCTS */}
           <div className="mt-10 grid lg:grid-cols-3 gap-5">
+            {!aiLoading && processedItems.length === 0 && (
+              <div className="col-span-full rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center text-sm text-destructive">
+                Unable to render a personalized box right now. Please go back and regenerate.
+              </div>
+            )}
             {processedItems.map((p, i) => (
               <Reveal key={p.id} delay={0.15 + i * 0.06}>
                 <div className="group h-full rounded-2xl border border-border bg-surface overflow-hidden shadow-soft-sm hover:shadow-soft-lg transition-shadow">
