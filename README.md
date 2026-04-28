@@ -88,6 +88,53 @@ Authentication: after login the frontend stores the JWT in localStorage under ke
 ## Orders / Commands
 - Orders are persisted locally (demo mode) under `localStorage` key `studybox.orders` and are displayed in the Dashboard -> "My Commands" section. See [src/routes/dashboard.tsx](src/routes/dashboard.tsx) and [src/routes/orders.tsx](src/routes/orders.tsx).
 
+## AI Study Pack Generator
+The AI generator creates **personalized, dynamic study kits** based on student profile (field, level, goal, study style, budget). It's not static—every generation is unique based on inputs.
+
+### How It Works
+1. **User inputs profile:** Field (CS, Medicine, Law, etc.), Academic Level, Goal (Exams, Projects, Internship), Study Style, Budget
+2. **AI analyzes combination:** The system considers all factors together (e.g., Medicine + Undergraduate + Exams + Visual learning = specific recommendations)
+3. **Generates personalized kit:** Returns 5-10 items with prices and specific reasons why each helps
+4. **Validates & saves:** Budget is enforced, pack is saved to DB, user earns XP
+
+### Supported Fields
+- Computer Science
+- Medicine
+- Law
+- Engineering
+- Business
+- Psychology
+- Mathematics
+- Physics
+- Chemistry
+- History
+
+### Supported Goals
+- Exams (high-stakes preparation)
+- Projects (long-form work)
+- Revision (steady learning)
+- Internship (career prep)
+- Mastery (deep expertise)
+- Certification (professional cert)
+
+### Supported Study Styles
+- Organized (planners, structure)
+- Last-minute (quick reference)
+- Visual (diagrams, colors)
+- Minimalistic (essentials only)
+- Collaborative (group work)
+- Hands-on (interactive)
+
+### AI Model Details
+- **Model:** OpenAI gpt-4o-mini
+- **Context-aware prompts:** AI receives detailed context about each field and goal
+- **Budget validation:** Ensures total cost ≤ budget
+- **Retry logic:** Automatic retries with exponential backoff
+- **Item-specific reasoning:** Each item has a reason tied to field+goal+level
+- **Temperature:** 0.7 (balanced for consistency and creativity)
+
+Example: A CS Undergraduate studying for exams gets different recommendations than a CS PhD doing research—even using the same field.
+
 ## Troubleshooting
 - If the frontend reports connection refused, confirm the backend is running on the expected `PORT` and that `VITE_API_URL` points to it.
 - Authentication 401: ensure JWT secret matches and the token is present in `localStorage` as `studybox.token`.

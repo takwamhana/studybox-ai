@@ -6,6 +6,7 @@ import { Layout } from "@/components/site/Layout";
 import { Reveal } from "@/components/site/Reveal";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/lib/user";
+import { FIELDS } from "@/lib/products";
 import { ProtectedRoute } from "@/lib/ProtectedRoute";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -46,6 +47,39 @@ function OrdersList() {
           <div className="text-right">
             <p className="font-semibold">{o.total.toFixed(2)} DT</p>
             <p className="text-xs text-muted-foreground">{o.status}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SavedBoxesList() {
+  const [boxes] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("studybox.saved") || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  if (!boxes || boxes.length === 0) {
+    return <p className="text-sm text-muted-foreground">No saved boxes yet. Generate a StudyBox and click save to store it here.</p>;
+  }
+
+  const recent = boxes.slice(0, 5);
+
+  return (
+    <div className="space-y-3">
+      {recent.map((b: any) => (
+        <div key={b.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-surface-alt">
+          <div>
+            <p className="font-medium">{b.profile?.field || b.id}</p>
+            <p className="text-xs text-muted-foreground">{b.profile?.level} · {b.profile?.goal} · {new Date(b.createdAt).toLocaleDateString()}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground">{FIELDS.find((f) => f.value === b.profile?.field)?.label ?? b.profile?.field}</p>
+            <p className="text-xs mt-1"><a className="text-primary" href={`/box?field=${encodeURIComponent(b.profile?.field||"")}&level=${encodeURIComponent(b.profile?.level||"")}&goal=${encodeURIComponent(b.profile?.goal||"")}&style=${encodeURIComponent(b.profile?.style||"")}&budget=${encodeURIComponent(String(b.profile?.budget||""))}`}>Open</a></p>
           </div>
         </div>
       ))}
@@ -198,7 +232,7 @@ function DashboardContent() {
                 <Reveal delay={0.35}>
                   <motion.div className="rounded-2xl border border-border bg-surface p-6 shadow-soft-sm">
                     <h2 className="text-lg font-semibold mb-4 flex items-center gap-2"><PackageOpen className="h-5 w-5" /> Saved Boxes</h2>
-                    <div className="text-center py-8"><PackageOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" /> <p className="text-muted-foreground text-sm">No saved boxes yet</p></div>
+                    <SavedBoxesList />
                   </motion.div>
                 </Reveal>
               </div>

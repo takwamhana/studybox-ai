@@ -5,13 +5,13 @@ import User from '../models/User.js';
 
 /**
  * Generate an AI-powered study pack based on user inputs
- * POST /api/generate-pack
+ * POST /api/generate-pack or /api/packs/generate
  */
 export const generateStudyPack_Handler = async (req, res) => {
   try {
     const { field, level, goal, studyStyle, budget } = req.body;
 
-    // Validate input
+    // Validate input - comprehensive checks
     if (!field || !level || !goal || !studyStyle || budget === undefined) {
       return res.status(400).json({
         success: false,
@@ -19,12 +19,55 @@ export const generateStudyPack_Handler = async (req, res) => {
       });
     }
 
-    if (typeof budget !== 'number' || budget < 0) {
+    if (typeof budget !== 'number' || budget < 10) {
       return res.status(400).json({
         success: false,
-        error: 'Budget must be a non-negative number (in DT)',
+        error: 'Budget must be a number ≥ 10 DT',
       });
     }
+
+    if (budget > 10000) {
+      return res.status(400).json({
+        success: false,
+        error: 'Budget exceeds maximum limit of 10,000 DT',
+      });
+    }
+
+    // Validate field/level/goal are recognized values
+    const validFields = ['computer-science', 'medicine', 'law', 'engineering', 'business', 'psychology', 'mathematics', 'physics', 'chemistry', 'history'];
+    const validLevels = ['high-school', 'undergraduate', 'graduate', 'phd', 'professional'];
+    const validGoals = ['exams', 'projects', 'revision', 'internship', 'mastery', 'certification'];
+    const validStyles = ['organized', 'last-minute', 'visual', 'minimalistic', 'collaborative', 'hands-on'];
+
+    if (!validFields.includes(field)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid field. Accepted: ${validFields.join(', ')}`,
+      });
+    }
+
+    if (!validLevels.includes(level)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid level. Accepted: ${validLevels.join(', ')}`,
+      });
+    }
+
+    if (!validGoals.includes(goal)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid goal. Accepted: ${validGoals.join(', ')}`,
+      });
+    }
+
+    if (!validStyles.includes(studyStyle)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid studyStyle. Accepted: ${validStyles.join(', ')}`,
+      });
+    }
+
+    console.log(`Generating study pack for: ${field} | ${level} | ${goal} | ${studyStyle} | Budget: ${budget} DT`);
 
     // Generate pack using AI service
     const generatedPack = await generateStudyPack({
@@ -37,6 +80,13 @@ export const generateStudyPack_Handler = async (req, res) => {
 
     // Get user for gamification
     const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
     const isFirstPack = user.statistics.totalBoxes === 0;
 
     // Save to database
@@ -56,6 +106,7 @@ export const generateStudyPack_Handler = async (req, res) => {
 
     // Apply gamification
     user.statistics.totalBoxes += 1;
+    user.statistics.totalSpent += generatedPack.totalEstimatedCost;
 
     // Award XP for generating pack
     const xpResult = await awardXp(user, 10); // +10 XP
@@ -71,6 +122,8 @@ export const generateStudyPack_Handler = async (req, res) => {
     });
 
     await user.save();
+
+    console.log(`✅ Pack generated successfully: ${studyPack._id} | ${generatedPack.totalEstimatedCost} DT`);
 
     res.status(201).json({
       success: true,
@@ -88,10 +141,20 @@ export const generateStudyPack_Handler = async (req, res) => {
     });
   } catch (error) {
     console.error('Error generating study pack:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to generate study pack',
-    });
+    
+    // Specific error messages
+    if (error.message.includes('Failed to generate study pack')) {
+      res.status(503).json({
+        success: false,
+        error: 'AI service temporarily unavailable. Try again in a moment.',
+        details: error.message,
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to generate study pack',
+      });
+    }
   }
 };
 
@@ -144,6 +207,40 @@ export const getAllStudyPacks = async (req, res) => {
       success: false,
       error: 'Failed to fetch study packs',
     });
+  }
+};
+
+/**
+ * Create a study pack from client-provided data (protected)
+ * POST /api/packs
+ */
+export const createStudyPack = async (req, res) => {
+  try {
+    const { input, generatedPack } = req.body;
+
+    if (!input || !generatedPack) {
+      return res.status(400).json({ success: false, error: 'Missing input or generatedPack in request body' });
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+    const studyPack = new StudyPack({
+      userId: req.user.userId,
+      input,
+      generatedPack,
+    });
+
+    await studyPack.save();
+
+    // Update user stats
+    user.statistics.totalBoxes += 1;
+    await user.save();
+
+    res.status(201).json({ success: true, data: studyPack });
+  } catch (error) {
+    console.error('Error creating study pack:', error);
+    res.status(500).json({ success: false, error: 'Failed to create study pack' });
   }
 };
 

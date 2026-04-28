@@ -5,6 +5,7 @@ import {
   getAllStudyPacks,
   getUserStudyPacks,
   saveStudyPack,
+  createStudyPack,
 } from '../controllers/packController.js';
 import { authenticateToken } from '../middleware/auth.js';
 
@@ -44,6 +45,12 @@ router.post('/:id/save', authenticateToken, saveStudyPack);
  * Get all study packs (public)
  */
 router.get('/', getAllStudyPacks);
+
+/**
+ * POST /api/packs
+ * Create a study pack from client-provided data (protected)
+ */
+router.post('/', authenticateToken, createStudyPack);
 
 /**
  * GET /api/packs/:id
