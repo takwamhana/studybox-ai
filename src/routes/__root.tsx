@@ -1,5 +1,6 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { ThemeProvider } from "@/lib/theme";
+import { UserProvider } from "@/lib/user";
 import { CartProvider } from "@/lib/cart";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -70,10 +71,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   return (
     <ThemeProvider>
-      <CartProvider>
-        <Outlet />
-        <Toaster />
-      </CartProvider>
+      <UserProvider>
+        <CartProvider>
+          <Outlet />
+          <Toaster />
+        </CartProvider>
+      </UserProvider>
     </ThemeProvider>
   );
 }

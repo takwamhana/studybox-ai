@@ -4,7 +4,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, Sparkles } from "lucide-react";
 import { Layout } from "@/components/site/Layout";
 import { Button } from "@/components/ui/button";
-import { FIELDS, LEVELS, GOALS, STYLES, BUDGETS, type Profile } from "@/lib/products";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FIELDS, LEVELS, GOALS, STYLES, type Profile } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/generator")({
@@ -34,13 +41,14 @@ function GeneratorPage() {
   const [profile, setProfile] = useState<Partial<Profile>>({});
   const [loading, setLoading] = useState(false);
   const [loadingLine, setLoadingLine] = useState(0);
+  const [customBudget, setCustomBudget] = useState("150");
 
   const canNext =
     (step === 0 && profile.field) ||
     (step === 1 && profile.level) ||
     (step === 2 && profile.goal) ||
     (step === 3 && profile.style) ||
-    (step === 4 && profile.budget);
+    (step === 4 && customBudget && parseInt(customBudget) >= 20 && parseInt(customBudget) <= 500);
 
   const select = (key: keyof Profile, val: string | number) => {
     setProfile((p) => ({ ...p, [key]: val }));
@@ -57,10 +65,15 @@ function GeneratorPage() {
       level: profile.level as string,
       goal: profile.goal as string,
       style: profile.style as string,
-      budget: String(profile.budget ?? 150),
+      budget: customBudget,
     });
     navigate({ to: "/box", search: Object.fromEntries(params) as never });
   };
+
+  const fieldLabel = FIELDS.find((f) => f.value === profile.field)?.label;
+  const levelLabel = LEVELS.find((l) => l.value === profile.level)?.label;
+  const goalLabel = GOALS.find((g) => g.value === profile.goal)?.label;
+  const styleLabel = STYLES.find((s) => s.value === profile.style)?.label;
 
   return (
     <Layout>
@@ -104,80 +117,148 @@ function GeneratorPage() {
                     exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
                     transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
                   >
+                    {/* Field Selection - Dropdown */}
                     {step === 0 && (
-                      <Grid>
-                        {FIELDS.map((f) => (
-                          <OptionCard
-                            key={f.value}
-                            label={f.label}
-                            selected={profile.field === f.value}
-                            onClick={() => select("field", f.value)}
-                          />
-                        ))}
-                      </Grid>
+                      <div className="space-y-4">
+                        <div>
+                          <h2 className="text-2xl font-bold tracking-tight">What's your field of study?</h2>
+                          <p className="mt-1 text-sm text-muted-foreground">Select your primary academic field</p>
+                        </div>
+                        <Select value={profile.field || ""} onValueChange={(val) => select("field", val)}>
+                          <SelectTrigger className="w-full h-12">
+                            <SelectValue placeholder="Select your field..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {FIELDS.map((f) => (
+                              <SelectItem key={f.value} value={f.value}>
+                                {f.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {fieldLabel && (
+                          <div className="rounded-lg bg-primary/5 border border-primary/10 px-4 py-3 text-sm text-foreground">
+                            <span className="font-semibold text-primary">Selected:</span> {fieldLabel}
+                          </div>
+                        )}
+                      </div>
                     )}
+
+                    {/* Level Selection - Dropdown */}
                     {step === 1 && (
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <div>
                           <h2 className="text-2xl font-bold tracking-tight">What's your level?</h2>
                           <p className="mt-1 text-sm text-muted-foreground">Choose your current academic level</p>
                         </div>
-                        <div className="flex flex-col gap-3 pt-2">
-                          {LEVELS.map((f) => (
-                            <OptionCard
-                              key={f.value}
-                              label={f.label}
-                              desc={f.desc}
-                              selected={profile.level === f.value}
-                              onClick={() => select("level", f.value)}
-                            />
-                          ))}
-                        </div>
+                        <Select value={profile.level || ""} onValueChange={(val) => select("level", val)}>
+                          <SelectTrigger className="w-full h-12">
+                            <SelectValue placeholder="Select your level..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {LEVELS.map((l) => (
+                              <SelectItem key={l.value} value={l.value}>
+                                {l.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {levelLabel && (
+                          <div className="rounded-lg bg-primary/5 border border-primary/10 px-4 py-3 text-sm text-foreground">
+                            <span className="font-semibold text-primary">Selected:</span> {levelLabel}
+                          </div>
+                        )}
                       </div>
                     )}
+
+                    {/* Goal Selection - Dropdown */}
                     {step === 2 && (
-                      <Grid>
-                        {GOALS.map((f) => (
-                          <OptionCard
-                            key={f.value}
-                            label={f.label}
-                            desc={f.desc}
-                            selected={profile.goal === f.value}
-                            onClick={() => select("goal", f.value)}
-                          />
-                        ))}
-                      </Grid>
+                      <div className="space-y-4">
+                        <div>
+                          <h2 className="text-2xl font-bold tracking-tight">What's your study goal?</h2>
+                          <p className="mt-1 text-sm text-muted-foreground">Select your primary study objective</p>
+                        </div>
+                        <Select value={profile.goal || ""} onValueChange={(val) => select("goal", val)}>
+                          <SelectTrigger className="w-full h-12">
+                            <SelectValue placeholder="Select your goal..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {GOALS.map((g) => (
+                              <SelectItem key={g.value} value={g.value}>
+                                {g.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {goalLabel && (
+                          <div className="rounded-lg bg-primary/5 border border-primary/10 px-4 py-3 text-sm text-foreground">
+                            <span className="font-semibold text-primary">Selected:</span> {goalLabel}
+                          </div>
+                        )}
+                      </div>
                     )}
+
+                    {/* Style Selection - Dropdown */}
                     {step === 3 && (
-                      <Grid>
-                        {STYLES.map((f) => (
-                          <OptionCard
-                            key={f.value}
-                            label={f.label}
-                            desc={f.desc}
-                            selected={profile.style === f.value}
-                            onClick={() => select("style", f.value)}
-                          />
-                        ))}
-                      </Grid>
+                      <div className="space-y-4">
+                        <div>
+                          <h2 className="text-2xl font-bold tracking-tight">What's your study style?</h2>
+                          <p className="mt-1 text-sm text-muted-foreground">Choose how you prefer to learn</p>
+                        </div>
+                        <Select value={profile.style || ""} onValueChange={(val) => select("style", val)}>
+                          <SelectTrigger className="w-full h-12">
+                            <SelectValue placeholder="Select your style..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STYLES.map((s) => (
+                              <SelectItem key={s.value} value={s.value}>
+                                {s.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {styleLabel && (
+                          <div className="rounded-lg bg-primary/5 border border-primary/10 px-4 py-3 text-sm text-foreground">
+                            <span className="font-semibold text-primary">Selected:</span> {styleLabel}
+                          </div>
+                        )}
+                      </div>
                     )}
+
+                    {/* Budget Input - Custom */}
                     {step === 4 && (
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <div>
                           <h2 className="text-2xl font-bold tracking-tight">What's your budget?</h2>
-                          <p className="mt-1 text-sm text-muted-foreground">We'll recommend products within your budget</p>
+                          <p className="mt-1 text-sm text-muted-foreground">Enter your budget in DT. We'll curate products within your range.</p>
                         </div>
-                        <div className="flex flex-col gap-3 pt-2">
-                          {BUDGETS.map((b) => (
-                            <OptionCard
-                              key={b.value}
-                              label={b.label}
-                              desc={b.desc}
-                              selected={profile.budget === b.value}
-                              onClick={() => select("budget", b.value)}
-                            />
-                          ))}
+                        <div className="space-y-3 pt-2">
+                          <input
+                            type="number"
+                            min="20"
+                            max="500"
+                            value={customBudget}
+                            onChange={(e) => setCustomBudget(e.target.value)}
+                            placeholder="Enter budget (20-500 DT)"
+                            className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Range: 20 - 500 DT</span>
+                            {customBudget && (
+                              <span className="font-semibold text-primary">{customBudget} DT</span>
+                            )}
+                          </div>
                         </div>
+                        {customBudget && parseInt(customBudget) >= 20 && parseInt(customBudget) <= 500 && (
+                          <div className="rounded-lg bg-green-500/10 border border-green-500/20 px-4 py-3 text-sm text-green-700 dark:text-green-400">
+                            ✓ Budget valid. Ready to generate!
+                          </div>
+                        )}
+                        {customBudget && (parseInt(customBudget) < 20 || parseInt(customBudget) > 500) && (
+                          <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+                            ✗ Budget must be between 20 and 500 DT
+                          </div>
+                        )}
                       </div>
                     )}
                   </motion.div>
@@ -264,48 +345,5 @@ function GeneratorPage() {
         </div>
       </section>
     </Layout>
-  );
-}
-
-function Grid({ children }: { children: React.ReactNode }) {
-  return <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{children}</div>;
-}
-
-function OptionCard({
-  label,
-  desc,
-  selected,
-  onClick,
-}: {
-  label: string;
-  desc?: string;
-  selected: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "group relative text-left rounded-xl border p-4 transition-all",
-        selected
-          ? "border-primary bg-primary/5 shadow-soft-md"
-          : "border-border bg-surface hover:border-primary/40 hover:bg-surface-alt",
-      )}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="font-semibold tracking-tight">{label}</div>
-          {desc && <div className="mt-1 text-xs text-muted-foreground">{desc}</div>}
-        </div>
-        <span
-          className={cn(
-            "mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition",
-            selected ? "border-primary bg-primary text-primary-foreground" : "border-border",
-          )}
-        >
-          {selected && <Check className="h-3 w-3" />}
-        </span>
-      </div>
-    </button>
   );
 }

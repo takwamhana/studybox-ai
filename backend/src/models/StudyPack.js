@@ -5,26 +5,29 @@ const studyPackSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      default: null,
+      required: [true, 'User ID is required'],
+      index: true,
     },
     input: {
       field: {
         type: String,
         required: true,
+        enum: ['Computer Science', 'Engineering', 'Medicine', 'Business', 'Law', 'Arts'],
       },
       level: {
         type: String,
         required: true,
+        enum: ['L1', 'L2', 'L3', 'Master'],
       },
       goal: {
         type: String,
         required: true,
-        enum: ['exam', 'project', 'revision', 'learning'],
+        enum: ['Exams', 'Projects', 'Revision', 'Internship'],
       },
       studyStyle: {
         type: String,
         required: true,
-        enum: ['organized', 'last-minute', 'visual', 'minimal'],
+        enum: ['Organized', 'Last-minute', 'Visual learner', 'Minimalist'],
       },
       budget: {
         type: Number,
@@ -36,6 +39,10 @@ const studyPackSchema = new mongoose.Schema(
       packName: String,
       description: String,
       totalEstimatedCost: Number,
+      currency: {
+        type: String,
+        default: 'DT',
+      },
       items: [
         {
           name: String,
@@ -44,6 +51,10 @@ const studyPackSchema = new mongoose.Schema(
           reason: String,
         },
       ],
+    },
+    savedDate: {
+      type: Date,
+      default: Date.now,
     },
     tokensSaved: {
       type: Boolean,

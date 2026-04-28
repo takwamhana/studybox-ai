@@ -9,8 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as MarketplaceRouteImport } from './routes/marketplace'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as GeneratorRouteImport } from './routes/generator'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CheckoutRouteImport } from './routes/checkout'
@@ -19,6 +21,11 @@ import { Route as BoxRouteImport } from './routes/box'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrdersRoute = OrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -27,6 +34,11 @@ const OrdersRoute = OrdersRouteImport.update({
 const MarketplaceRoute = MarketplaceRouteImport.update({
   id: '/marketplace',
   path: '/marketplace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GeneratorRoute = GeneratorRouteImport.update({
@@ -72,8 +84,10 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/dashboard': typeof DashboardRoute
   '/generator': typeof GeneratorRoute
+  '/login': typeof LoginRoute
   '/marketplace': typeof MarketplaceRoute
   '/orders': typeof OrdersRoute
+  '/signup': typeof SignupRoute
   '/product/$id': typeof ProductIdRoute
 }
 export interface FileRoutesByTo {
@@ -83,8 +97,10 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/dashboard': typeof DashboardRoute
   '/generator': typeof GeneratorRoute
+  '/login': typeof LoginRoute
   '/marketplace': typeof MarketplaceRoute
   '/orders': typeof OrdersRoute
+  '/signup': typeof SignupRoute
   '/product/$id': typeof ProductIdRoute
 }
 export interface FileRoutesById {
@@ -95,8 +111,10 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/dashboard': typeof DashboardRoute
   '/generator': typeof GeneratorRoute
+  '/login': typeof LoginRoute
   '/marketplace': typeof MarketplaceRoute
   '/orders': typeof OrdersRoute
+  '/signup': typeof SignupRoute
   '/product/$id': typeof ProductIdRoute
 }
 export interface FileRouteTypes {
@@ -108,8 +126,10 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/dashboard'
     | '/generator'
+    | '/login'
     | '/marketplace'
     | '/orders'
+    | '/signup'
     | '/product/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -119,8 +139,10 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/dashboard'
     | '/generator'
+    | '/login'
     | '/marketplace'
     | '/orders'
+    | '/signup'
     | '/product/$id'
   id:
     | '__root__'
@@ -130,8 +152,10 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/dashboard'
     | '/generator'
+    | '/login'
     | '/marketplace'
     | '/orders'
+    | '/signup'
     | '/product/$id'
   fileRoutesById: FileRoutesById
 }
@@ -142,13 +166,22 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   DashboardRoute: typeof DashboardRoute
   GeneratorRoute: typeof GeneratorRoute
+  LoginRoute: typeof LoginRoute
   MarketplaceRoute: typeof MarketplaceRoute
   OrdersRoute: typeof OrdersRoute
+  SignupRoute: typeof SignupRoute
   ProductIdRoute: typeof ProductIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/orders': {
       id: '/orders'
       path: '/orders'
@@ -161,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/marketplace'
       fullPath: '/marketplace'
       preLoaderRoute: typeof MarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/generator': {
@@ -222,8 +262,10 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   DashboardRoute: DashboardRoute,
   GeneratorRoute: GeneratorRoute,
+  LoginRoute: LoginRoute,
   MarketplaceRoute: MarketplaceRoute,
   OrdersRoute: OrdersRoute,
+  SignupRoute: SignupRoute,
   ProductIdRoute: ProductIdRoute,
 }
 export const routeTree = rootRouteImport

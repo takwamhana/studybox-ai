@@ -10,13 +10,18 @@ const productSchema = new mongoose.Schema(
     },
     price: {
       type: Number,
-      required: [true, 'Product price is required'],
+      required: [true, 'Product price is required (in DT)'],
       min: [0, 'Price cannot be negative'],
+    },
+    currency: {
+      type: String,
+      default: 'DT',
+      enum: ['DT'],
     },
     category: {
       type: String,
       required: [true, 'Category is required'],
-      enum: ['books', 'stationery', 'tech', 'supplies', 'software', 'courses', 'other'],
+      enum: ['stationery', 'electronics', 'books', 'study snacks', 'planners & organization tools', 'digital tools'],
     },
     image: {
       type: String,
@@ -26,6 +31,7 @@ const productSchema = new mongoose.Schema(
       type: String,
       maxlength: [500, 'Description cannot exceed 500 characters'],
     },
+    tags: [String],
     inStock: {
       type: Boolean,
       default: true,

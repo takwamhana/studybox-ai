@@ -70,7 +70,7 @@ export const getProductById = async (req, res) => {
  */
 export const createProduct = async (req, res) => {
   try {
-    const { name, price, category, image, description, inStock } = req.body;
+    const { name, price, category, image, description, tags, inStock } = req.body;
 
     if (!name || !price || !category) {
       return res.status(400).json({
@@ -85,6 +85,7 @@ export const createProduct = async (req, res) => {
       category,
       image,
       description,
+      tags: tags || [],
       inStock,
     });
 

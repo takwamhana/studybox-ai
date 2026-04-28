@@ -1,12 +1,14 @@
-import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
+import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useEffect, useMemo } from "react";
-import { ArrowRight, Check, Save, Share2, Sparkles, ShoppingBag } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, Check, Save, Share2, Sparkles, ShoppingBag, Loader2 } from "lucide-react";
 import { Layout } from "@/components/site/Layout";
 import { Reveal } from "@/components/site/Reveal";
 import { Button } from "@/components/ui/button";
 import { FIELDS, generateBox, saveBox, type Profile } from "@/lib/products";
 import { useCart } from "@/lib/cart";
+import { useUser } from "@/lib/user";
+import { useAIGenerate, type AIGeneratedBox } from "@/lib/useAIGenerate";
 import { toast } from "sonner";
 
 type SearchParams = Partial<Profile>;
@@ -28,36 +30,111 @@ export const Route = createFileRoute("/box")({
   component: BoxPage,
 });
 
+interface ProcessedItem {
+  id: string;
+  name: string;
+  price: number;
+  tagline: string;
+  category: string;
+  image: string;
+}
+
 function BoxPage() {
   const search = useSearch({ from: "/box" });
   const cart = useCart();
+  const { user } = useUser();
+  const navigate = useNavigate();
+  const [isSaving, setIsSaving] = useState(false);
+  const [aiBox, setAiBox] = useState<AIGeneratedBox | null>(null);
+  const [useAI, setUseAI] = useState(true);
+  const { generateBox: generateAIBox, loading: aiLoading } = useAIGenerate();
 
-  const profile: Profile = {
-    field: search.field ?? "computer-science",
-    level: search.level ?? "undergraduate",
-    goal: search.goal ?? "exams",
-    style: search.style ?? "organized",
-    budget: search.budget ?? 150,
-  };
+  // Memoize profile to prevent unnecessary AI API calls
+  const profile: Profile = useMemo(
+    () => ({
+      field: search.field ?? "computer-science",
+      level: search.level ?? "undergraduate",
+      goal: search.goal ?? "exams",
+      style: search.style ?? "organized",
+      budget: search.budget ?? 150,
+    }),
+    [search.field, search.level, search.goal, search.style, search.budget]
+  );
 
-  const { products, rationale } = useMemo(() => generateBox(profile), [profile.field, profile.level, profile.goal, profile.style, profile.budget]);
+  // Generate AI box on component mount
+  useEffect(() => {
+    const generateBox = async () => {
+      if (user && useAI) {
+        try {
+          const result = await generateAIBox(profile);
+          if (result) {
+            setAiBox(result);
+          } else {
+            setUseAI(false);
+            toast.info("Using standard recommendations");
+          }
+        } catch (err) {
+          setUseAI(false);
+          toast.info("Using standard recommendations");
+        }
+      }
+    };
+    generateBox();
+  }, [profile, user, useAI]);
 
-  const total = products.reduce((acc, p) => acc + p.price, 0);
+  // Convert AI items to processable format
+  const processedItems: ProcessedItem[] = useMemo(() => {
+    if (aiBox && user && useAI && !aiLoading) {
+      return aiBox.items.map((item, idx) => ({
+        id: `ai-item-${idx}`,
+        name: item.name,
+        price: item.price,
+        tagline: item.reason,
+        category: item.category,
+        image: "https://via.placeholder.com/400x300?text=" + encodeURIComponent(item.name.substring(0, 15)),
+      }));
+    }
+
+    // Fallback to static algorithm
+    const { products } = generateBox(profile);
+    return products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      tagline: p.tagline,
+      category: p.category,
+      image: p.image,
+    }));
+  }, [aiBox, user, useAI, aiLoading, profile]);
+
   const fieldLabel = FIELDS.find((f) => f.value === profile.field)?.label ?? profile.field;
+  const total = processedItems.reduce((acc, p) => acc + p.price, 0);
 
   useEffect(() => {
-    // smooth scroll to top on entry
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const handleSave = () => {
-    saveBox({
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      profile,
-      productIds: products.map((p) => p.id),
-    });
-    toast.success("StudyBox saved to your dashboard.");
+  const handleSave = async () => {
+    if (!user) {
+      toast.error("Please login to save study boxes");
+      navigate({ to: "/login" });
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      saveBox({
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+        profile,
+        productIds: processedItems.map((p) => p.id),
+      });
+      toast.success("StudyBox saved to your dashboard!");
+    } catch (err) {
+      toast.error("Failed to save box");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleShare = async () => {
@@ -70,8 +147,19 @@ function BoxPage() {
   };
 
   const handleAddAll = () => {
-    products.forEach((p) => cart.addItem(p));
-    toast.success(`Added ${products.length} items to cart!`);
+    processedItems.forEach((p) => {
+      cart.addItem({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        image: p.image,
+        tagline: p.tagline,
+        category: p.category as any,
+        fields: [],
+        styles: [],
+      });
+    });
+    toast.success(`Added ${processedItems.length} items to cart!`);
   };
 
   return (
@@ -86,13 +174,16 @@ function BoxPage() {
           >
             <div className="inline-flex items-center gap-2 rounded-full bg-success/10 text-success px-3 py-1 text-xs font-medium">
               <Check className="h-3.5 w-3.5" /> StudyBox ready
+              {aiLoading && <Loader2 className="h-3 w-3 animate-spin ml-1" />}
             </div>
             <h1 className="mt-5 text-4xl md:text-6xl font-bold tracking-tight">
               Your <span className="gradient-text">StudyBox</span> is ready.
             </h1>
             <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-              Curated for {fieldLabel} · {profile.level} · {profile.goal} · {profile.style}
-              {profile.budget && ` · $${profile.budget} budget`}.
+              {useAI && user && !aiLoading
+                ? `AI-personalized for ${fieldLabel} · ${profile.level} · ${profile.goal} · ${profile.style}`
+                : `Curated for ${fieldLabel} · ${profile.level} · ${profile.goal} · ${profile.style}`}
+              {profile.budget && ` · ${profile.budget} DT budget`}.
             </p>
           </motion.div>
 
@@ -104,16 +195,24 @@ function BoxPage() {
                   <Sparkles className="h-5 w-5 text-primary-foreground" />
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">{products.length} items in your box</div>
-                  <div className="text-2xl font-bold tabular-nums">${total}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {processedItems.length} items in your box
+                    {useAI && user && " (AI-optimized)"}
+                  </div>
+                  <div className="text-2xl font-bold tabular-nums">{total} DT</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="ghost" onClick={handleShare}>
                   <Share2 className="mr-1 h-4 w-4" /> Share
                 </Button>
-                <Button variant="secondary" onClick={handleSave}>
-                  <Save className="mr-1 h-4 w-4" /> Save box
+                <Button
+                  variant="secondary"
+                  onClick={handleSave}
+                  disabled={isSaving || !user}
+                  title={!user ? "Login to save boxes" : ""}
+                >
+                  <Save className="mr-1 h-4 w-4" /> {isSaving ? "Saving..." : user ? "Save box" : "Login to save"}
                 </Button>
                 <Button onClick={handleAddAll} className="shadow-soft-md hover:-translate-y-0.5 transition-transform">
                   <ShoppingBag className="mr-1 h-4 w-4" /> Add all to cart
@@ -129,10 +228,10 @@ function BoxPage() {
 
           {/* PRODUCTS */}
           <div className="mt-10 grid lg:grid-cols-3 gap-5">
-            {products.map((p, i) => (
+            {processedItems.map((p, i) => (
               <Reveal key={p.id} delay={0.15 + i * 0.06}>
                 <div className="group h-full rounded-2xl border border-border bg-surface overflow-hidden shadow-soft-sm hover:shadow-soft-lg transition-shadow">
-                  <Link to="/product/$id" params={{ id: p.id }} className="block relative aspect-[4/3] overflow-hidden bg-surface-alt">
+                  <div className="block relative aspect-[4/3] overflow-hidden bg-surface-alt">
                     <img
                       src={p.image}
                       alt={p.name}
@@ -141,17 +240,17 @@ function BoxPage() {
                       height={600}
                       className="h-full w-full object-cover transition-[filter] duration-300 group-hover:brightness-90"
                     />
-                  </Link>
+                  </div>
                   <div className="p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="font-semibold tracking-tight">{p.name}</h3>
                         <p className="text-xs text-muted-foreground mt-0.5">{p.tagline}</p>
                       </div>
-                      <div className="text-sm font-semibold tabular-nums">${p.price}</div>
+                      <div className="text-sm font-semibold tabular-nums">{p.price} DT</div>
                     </div>
                     <div className="mt-4 rounded-lg bg-primary/5 border border-primary/10 px-3 py-2 text-xs text-foreground/80">
-                      <span className="font-semibold text-primary">Why:</span> {rationale[p.id]}
+                      <span className="font-semibold text-primary">Why:</span> {p.tagline}
                     </div>
                   </div>
                 </div>
