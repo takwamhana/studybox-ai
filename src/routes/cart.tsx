@@ -107,8 +107,8 @@ function CartPage() {
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <div className="text-sm font-semibold tabular-nums">${item.product.price}</div>
-                            <div className="text-xs text-muted-foreground mt-1">Total: ${item.product.price * item.quantity}</div>
+                            <div className="text-sm font-semibold tabular-nums">{item.product.price.toFixed(2)} DT</div>
+                              <div className="text-xs text-muted-foreground mt-1">Total: {(item.product.price * item.quantity).toFixed(2)} DT</div>
                           </div>
                         </div>
 
@@ -159,9 +159,9 @@ function CartPage() {
                   <h2 className="text-lg font-semibold tracking-tight">Order Summary</h2>
 
                   <div className="mt-6 space-y-3">
-                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span className="font-medium tabular-nums">${cart.total.toFixed(2)}</span>
+                      <span className="font-medium tabular-nums">{cart.total.toFixed(2)} DT</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Shipping</span>
@@ -169,14 +169,14 @@ function CartPage() {
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Tax (estimated)</span>
-                      <span className="font-medium tabular-nums">${(cart.total * 0.1).toFixed(2)}</span>
+                      <span className="font-medium tabular-nums">{(cart.total * 0.1).toFixed(2)} DT</span>
                     </div>
                   </div>
 
                   <div className="mt-6 pt-6 border-t border-border">
                     <div className="flex items-center justify-between">
                       <span className="text-base font-semibold">Total</span>
-                      <span className="text-2xl font-bold tabular-nums">${(cart.total * 1.1).toFixed(2)}</span>
+                      <span className="text-2xl font-bold tabular-nums">{(cart.total * 1.1).toFixed(2)} DT</span>
                     </div>
                   </div>
 
@@ -213,10 +213,10 @@ function CartPage() {
                 {/* Info Box */}
                 <div className="mt-6 rounded-2xl border border-border bg-surface-alt p-4">
                   <div className="text-xs space-y-2 text-muted-foreground">
-                    <p>✓ Free shipping on orders over $50</p>
-                    <p>✓ 30-day money-back guarantee</p>
-                    <p>✓ Support for students worldwide</p>
-                  </div>
+                      <p>✓ Free shipping on orders over 50 DT</p>
+                      <p>✓ 30-day money-back guarantee</p>
+                      <p>✓ Support for students worldwide</p>
+                    </div>
                 </div>
               </div>
             </Reveal>

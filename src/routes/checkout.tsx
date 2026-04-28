@@ -458,8 +458,8 @@ function CheckoutPage() {
                             <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                           </div>
                           <p className="font-semibold tabular-nums flex-shrink-0">
-                            ${(item.product.price * item.quantity).toFixed(2)}
-                          </p>
+                                {(item.product.price * item.quantity).toFixed(2)} DT
+                              </p>
                         </div>
                       ))}
                     </div>
@@ -467,22 +467,22 @@ function CheckoutPage() {
                     <div className="space-y-3 mb-6">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Subtotal</span>
-                        <span className="font-medium">${cart.total.toFixed(2)}</span>
+                        <span className="font-medium">{cart.total.toFixed(2)} DT</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Shipping</span>
-                        <span className="font-medium">{shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`}</span>
+                        <span className="font-medium">{shipping === 0 ? "FREE" : `${shipping.toFixed(2)} DT`}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Tax (10%)</span>
-                        <span className="font-medium">${tax.toFixed(2)}</span>
+                        <span className="font-medium">{tax.toFixed(2)} DT</span>
                       </div>
                     </div>
 
                     <div className="pt-6 border-t border-border">
                       <div className="flex items-center justify-between mb-6">
                         <span className="font-semibold">Total</span>
-                        <span className="text-2xl font-bold">${finalTotal.toFixed(2)}</span>
+                        <span className="text-2xl font-bold">{finalTotal.toFixed(2)} DT</span>
                       </div>
                       <div className="text-xs text-muted-foreground space-y-1">
                         <p>✓ Demo mode - no charges</p>
@@ -563,7 +563,7 @@ function CheckoutPage() {
                   </div>
                   <div className="p-4 rounded-lg border border-border">
                     <p className="text-xs text-muted-foreground mb-2">Total</p>
-                    <p className="font-medium text-sm">${finalTotal.toFixed(2)}</p>
+                    <p className="font-medium text-sm">{finalTotal.toFixed(2)} DT</p>
                   </div>
                   <div className="p-4 rounded-lg border border-border">
                     <p className="text-xs text-muted-foreground mb-2">Est. Delivery</p>

@@ -84,8 +84,8 @@ function ProductPage() {
                 <p className="mt-2 text-lg text-muted-foreground">{product.tagline}</p>
 
                 <div className="mt-6 flex items-baseline gap-3">
-                  <div className="text-3xl font-bold tabular-nums">${product.price}</div>
-                  <div className="text-sm text-muted-foreground">free shipping over $50</div>
+                  <div className="text-3xl font-bold tabular-nums">{product.price.toFixed(2)} DT</div>
+                  <div className="text-sm text-muted-foreground">free shipping over 50 DT</div>
                 </div>
 
                 <p className="mt-6 text-sm leading-relaxed text-foreground/80">{product.description}</p>

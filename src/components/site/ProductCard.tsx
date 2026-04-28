@@ -40,7 +40,7 @@ export function ProductCard({ product, badge }: { product: Product; badge?: stri
               <h3 className="text-sm font-semibold tracking-tight truncate">{product.name}</h3>
               <p className="text-xs text-muted-foreground mt-0.5 truncate">{product.tagline}</p>
             </div>
-            <div className="text-sm font-semibold tabular-nums">${product.price}</div>
+            <div className="text-sm font-semibold tabular-nums">{product.price.toFixed(2)} DT</div>
           </div>
           <div className="mt-3 inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground">
             {product.category}

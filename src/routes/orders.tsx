@@ -189,8 +189,8 @@ function OrdersPage() {
                 <tr>
                   <td>${item.product.name}</td>
                   <td style="text-align: right;">${item.quantity}</td>
-                  <td style="text-align: right;">$${item.product.price.toFixed(2)}</td>
-                  <td style="text-align: right;">$${(item.product.price * item.quantity).toFixed(2)}</td>
+                  <td style="text-align: right;">${item.product.price.toFixed(2)} DT</td>
+                  <td style="text-align: right;">${(item.product.price * item.quantity).toFixed(2)} DT</td>
                 </tr>
               `
                 )
@@ -201,19 +201,19 @@ function OrdersPage() {
           <div class="totals">
             <div class="total-row">
               <span>Subtotal:</span>
-              <span style="text-align: right;">$${(order.total / 1.1).toFixed(2)}</span>
+              <span style="text-align: right;">${(order.total / 1.1).toFixed(2)} DT</span>
             </div>
             <div class="total-row">
               <span>Tax (10%):</span>
-              <span style="text-align: right;">$${((order.total / 1.1) * 0.1).toFixed(2)}</span>
+              <span style="text-align: right;">${((order.total / 1.1) * 0.1).toFixed(2)} DT</span>
             </div>
             <div class="total-row">
               <span>Shipping:</span>
-              <span style="text-align: right;">$0.00</span>
+              <span style="text-align: right;">0.00 DT</span>
             </div>
             <div class="total-row final">
               <span>Total:</span>
-              <span style="text-align: right;">$${order.total.toFixed(2)}</span>
+              <span style="text-align: right;">${order.total.toFixed(2)} DT</span>
             </div>
           </div>
 
@@ -349,7 +349,7 @@ function OrdersPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">Total Amount</p>
-                      <p className="text-2xl font-bold mt-1">${order.total.toFixed(2)}</p>
+                      <p className="text-2xl font-bold mt-1">{order.total.toFixed(2)} DT</p>
                       <div className="flex items-center gap-2 mt-3 justify-end">
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 text-success px-3 py-1 text-xs font-medium">
                           ✓ {order.status === "confirmed" ? "Confirmed" : order.status === "shipped" ? "Shipped" : "Delivered"}
@@ -368,7 +368,7 @@ function OrdersPage() {
                           <p className="text-xs text-muted-foreground mt-0.5">Qty: {item.quantity}</p>
                         </div>
                         <p className="font-semibold text-sm tabular-nums">
-                          ${(item.product.price * item.quantity).toFixed(2)}
+                          {(item.product.price * item.quantity).toFixed(2)} DT
                         </p>
                       </div>
                     ))}

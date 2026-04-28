@@ -9,6 +9,7 @@ import { useUser } from "@/lib/user";
 import { ProtectedRoute } from "@/lib/ProtectedRoute";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — StudyBox AI" }] }),
@@ -17,6 +18,39 @@ export const Route = createFileRoute("/dashboard")({
 
 function DashboardPage() {
   return <ProtectedRoute><DashboardContent /></ProtectedRoute>;
+}
+
+function OrdersList() {
+  const [orders] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("studybox.orders") || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  if (!orders || orders.length === 0) {
+    return <p className="text-sm text-muted-foreground">No commands yet. Place an order to see it here.</p>;
+  }
+
+  const recent = orders.slice(0, 5);
+
+  return (
+    <div className="space-y-3">
+      {recent.map((o: any) => (
+        <div key={o.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-surface-alt">
+          <div>
+            <p className="font-medium">{o.id}</p>
+            <p className="text-xs text-muted-foreground">{o.email} · {new Date(o.date).toLocaleDateString()}</p>
+          </div>
+          <div className="text-right">
+            <p className="font-semibold">{o.total.toFixed(2)} DT</p>
+            <p className="text-xs text-muted-foreground">{o.status}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function DashboardContent() {
@@ -220,6 +254,19 @@ function DashboardContent() {
                       )}
                     </motion.div>
                   ))}
+                </div>
+              </motion.div>
+            </Reveal>
+
+            {/* Recent Orders / Commands */}
+            <Reveal delay={0.5}>
+              <motion.div className="mt-6 rounded-2xl border border-border bg-surface p-6 shadow-soft-sm">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2"><PackageOpen className="h-5 w-5" /> My Commands</h2>
+                <OrdersList />
+                <div className="mt-4">
+                  <Button asChild variant="ghost" size="sm">
+                    <Link to="/orders">View all orders</Link>
+                  </Button>
                 </div>
               </motion.div>
             </Reveal>

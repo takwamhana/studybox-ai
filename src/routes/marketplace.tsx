@@ -67,7 +67,7 @@ function MarketplacePage() {
               <div className="flex items-center gap-2 text-sm">
                 <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
                 <span className="text-muted-foreground">Max</span>
-                <span className="font-semibold tabular-nums w-16 text-right">${maxPrice}</span>
+                <span className="font-semibold tabular-nums w-16 text-right">{maxPrice} DT</span>
                 <input
                   type="range"
                   min={10}
